@@ -19,7 +19,7 @@ export function SocketProvider({ children }) {
 
     console.log('🔌 Connecting socket...');
 
-    const newSocket = io('http://localhost:5000', {
+    const newSocket = io(process.env.REACT_APP_SERVER_URL || 'https://kanban-board-eio8.onrender.com', {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnection: true,
