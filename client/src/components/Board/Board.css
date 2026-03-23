@@ -1518,3 +1518,76 @@
   border-color: white;
   box-shadow: 0 0 0 2px var(--brand-500);
 }
+/* Card title section */
+.card-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-title-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 0;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.card-title-display:hover {
+  background: var(--bg-modifier-hover);
+  padding: 4px 8px;
+  margin: 0 -8px;
+}
+
+.card-modal-title-text {
+  color: var(--header-primary);
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  word-break: break-word;
+}
+
+.card-title-edit-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition: var(--transition);
+  display: flex;
+  flex-shrink: 0;
+}
+
+.card-title-display:hover .card-title-edit-btn {
+  opacity: 1;
+}
+
+.card-title-edit-btn:hover {
+  color: var(--text-normal);
+  background: var(--bg-modifier-hover);
+}
+
+.card-title-edit {
+  width: 100%;
+}
+
+.card-modal-title-input {
+  width: 100%;
+  background: var(--input-background);
+  border: 2px solid var(--brand-500);
+  border-radius: var(--radius-sm);
+  color: var(--header-primary);
+  font-size: 22px;
+  font-weight: 700;
+  padding: 6px 12px;
+  outline: none;
+  transition: var(--transition);
+}
+
+.card-modal-title-input:focus {
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.2);
+}

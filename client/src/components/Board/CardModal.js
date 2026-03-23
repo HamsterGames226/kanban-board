@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../i18n';
 import api from '../../utils/api';
-import { FiX, FiTrash2, FiCheck, FiTag, FiUsers, FiMessageSquare, FiCheckSquare, FiEyeOff } from 'react-icons/fi';
+import { FiX, FiTrash2, FiCheck, FiTag, FiUsers, FiMessageSquare, FiCheckSquare, FiEyeOff, FiEdit2 } from 'react-icons/fi';
 
 function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
   const { t } = useTranslation();
@@ -12,6 +12,7 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
   const isViewer = userRole === 'viewer';
 
   const [title, setTitle] = useState(card.title);
+  const [editingTitle, setEditingTitle] = useState(false);
   const [description, setDescription] = useState(card.description || '');
   const [priority, setPriority] = useState(card.priority);
   const [dueDate, setDueDate] = useState(card.dueDate ? card.dueDate.slice(0, 10) : '');
@@ -28,87 +29,131 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
   const [showAddCheck, setShowAddCheck] = useState(false);
 
   const labelColors = ['#5865f2', '#57f287', '#fee75c', '#eb459e', '#ed4245', '#f0b232', '#00a8fc'];
-  const saveTimeout = useRef(null);
+  const descTimeout = useRef(null);
 
-  const autoSave = (updates) => {
-    if (!canEdit) return;
-    if (saveTimeout.current) clearTimeout(saveTimeout.current);
-    saveTimeout.current = setTimeout(async () => {
-      try { await api.put(`/cards/${card._id}`, updates); } catch (err) { console.error(err); }
-    }, 500);
+  // ===== Сохранение названия =====
+  const saveTitle = async () => {
+    if (!title.trim() || !canEdit) return;
+    try {
+      await api.put(`/cards/${card._id}`, { title: title.trim() });
+      setEditingTitle(false);
+    } catch (err) {
+      console.error('Save title error:', err);
+    }
   };
 
-  const handleTitleChange = (v) => { if (!canEdit) return; setTitle(v); autoSave({ title: v }); };
-  const handleDescChange = (v) => { if (!canEdit) return; setDescription(v); autoSave({ description: v }); };
+  // ===== Автосохранение описания =====
+  const handleDescChange = (v) => {
+    if (!canEdit) return;
+    setDescription(v);
+    if (descTimeout.current) clearTimeout(descTimeout.current);
+    descTimeout.current = setTimeout(async () => {
+      try {
+        await api.put(`/cards/${card._id}`, { description: v });
+      } catch (err) {
+        console.error('Save desc error:', err);
+      }
+    }, 800);
+  };
 
+  // ===== Приоритет =====
   const handlePriorityChange = async (v) => {
     if (!canEdit) return;
     setPriority(v);
-    try { await api.put(`/cards/${card._id}`, { priority: v }); } catch (err) { console.error(err); }
+    try { await api.put(`/cards/${card._id}`, { priority: v }); }
+    catch (err) { console.error(err); }
   };
 
+  // ===== Дата =====
   const handleDueDateChange = async (v) => {
     if (!canEdit) return;
     setDueDate(v);
-    try { await api.put(`/cards/${card._id}`, { dueDate: v || null }); } catch (err) { console.error(err); }
+    try { await api.put(`/cards/${card._id}`, { dueDate: v || null }); }
+    catch (err) { console.error(err); }
   };
 
+  // ===== Метки =====
   const addLabel = async () => {
     if (!newLabelText.trim() || !canEdit) return;
     const nl = [...labels, { text: newLabelText, color: newLabelColor }];
-    setLabels(nl); setNewLabelText(''); setShowAddLabel(false);
-    try { await api.put(`/cards/${card._id}`, { labels: nl }); } catch (err) { console.error(err); }
+    setLabels(nl);
+    setNewLabelText('');
+    setShowAddLabel(false);
+    try { await api.put(`/cards/${card._id}`, { labels: nl }); }
+    catch (err) { console.error(err); }
   };
 
   const removeLabel = async (i) => {
     if (!canEdit) return;
-    const nl = labels.filter((_, idx) => idx !== i); setLabels(nl);
-    try { await api.put(`/cards/${card._id}`, { labels: nl }); } catch (err) { console.error(err); }
+    const nl = labels.filter((_, idx) => idx !== i);
+    setLabels(nl);
+    try { await api.put(`/cards/${card._id}`, { labels: nl }); }
+    catch (err) { console.error(err); }
   };
 
+  // ===== Исполнители =====
   const toggleAssignee = async (member) => {
     if (!canEdit) return;
     const mid = member.user?._id || member._id;
     const isAssigned = assignees.some(a => a._id === mid);
-    const na = isAssigned ? assignees.filter(a => a._id !== mid)
-      : [...assignees, { _id: mid, username: member.user?.username || member.username, avatar: member.user?.avatar || member.avatar }];
+    const na = isAssigned
+      ? assignees.filter(a => a._id !== mid)
+      : [...assignees, {
+          _id: mid,
+          username: member.user?.username || member.username,
+          avatar: member.user?.avatar || member.avatar
+        }];
     setAssignees(na);
-    try { await api.put(`/cards/${card._id}`, { assignees: na.map(a => a._id) }); } catch (err) { console.error(err); }
+    try { await api.put(`/cards/${card._id}`, { assignees: na.map(a => a._id) }); }
+    catch (err) { console.error(err); }
   };
 
-  // Комментарии — доступны ВСЕМ
+  // ===== Комментарии (доступны всем) =====
   const addComment = async () => {
     if (!newComment.trim()) return;
     try {
       const res = await api.post(`/cards/${card._id}/comments`, { text: newComment });
-      setComments(res.data.comments); setNewComment('');
+      setComments(res.data.comments);
+      setNewComment('');
     } catch (err) { console.error(err); }
   };
 
+  // ===== Чеклист =====
   const addCheckItem = async () => {
     if (!newCheckItem.trim() || !canEdit) return;
     const nc = [...checklist, { text: newCheckItem, completed: false }];
-    setChecklist(nc); setNewCheckItem('');
-    try { await api.put(`/cards/${card._id}`, { checklist: nc }); } catch (err) { console.error(err); }
+    setChecklist(nc);
+    setNewCheckItem('');
+    try { await api.put(`/cards/${card._id}`, { checklist: nc }); }
+    catch (err) { console.error(err); }
   };
 
   const toggleCheckItem = async (i) => {
     if (!canEdit) return;
-    const nc = checklist.map((item, idx) => idx === i ? { ...item, completed: !item.completed } : item);
+    const nc = checklist.map((item, idx) =>
+      idx === i ? { ...item, completed: !item.completed } : item
+    );
     setChecklist(nc);
-    try { await api.put(`/cards/${card._id}`, { checklist: nc }); } catch (err) { console.error(err); }
+    try { await api.put(`/cards/${card._id}`, { checklist: nc }); }
+    catch (err) { console.error(err); }
   };
 
   const removeCheckItem = async (i) => {
     if (!canEdit) return;
-    const nc = checklist.filter((_, idx) => idx !== i); setChecklist(nc);
-    try { await api.put(`/cards/${card._id}`, { checklist: nc }); } catch (err) { console.error(err); }
+    const nc = checklist.filter((_, idx) => idx !== i);
+    setChecklist(nc);
+    try { await api.put(`/cards/${card._id}`, { checklist: nc }); }
+    catch (err) { console.error(err); }
   };
 
+  // ===== Удаление =====
   const deleteCard = async () => {
     if (!canEdit) return;
     if (!window.confirm(t('card.deleteCardConfirm'))) return;
-    try { await api.delete(`/cards/${card._id}`); onClose(); } catch (err) { console.error(err); }
+    try {
+      await api.delete(`/cards/${card._id}`);
+      onClose();
+    } catch (err) { console.error(err); }
   };
 
   const checkDone = checklist.filter(c => c.completed).length;
@@ -127,24 +172,54 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
   return (
     <div className="card-modal-overlay" onClick={onClose}>
       <div className="card-modal" onClick={e => e.stopPropagation()}>
+
+        {/* ===== ЗАГОЛОВОК ===== */}
         <div className="card-modal-header">
-          {canEdit ? (
-            <input type="text" className="card-modal-title-input" value={title}
-              onChange={e => handleTitleChange(e.target.value)} />
-          ) : (
-            <h2 style={{ color: 'var(--header-primary)', fontSize: 22, fontWeight: 700 }}>{title}</h2>
-          )}
+          <div className="card-title-section">
+            {editingTitle && canEdit ? (
+              <div className="card-title-edit">
+                <input
+                  type="text"
+                  className="card-modal-title-input"
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  autoFocus
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') saveTitle();
+                    if (e.key === 'Escape') {
+                      setTitle(card.title);
+                      setEditingTitle(false);
+                    }
+                  }}
+                  onBlur={saveTitle}
+                />
+              </div>
+            ) : (
+              <div className="card-title-display" onClick={() => canEdit && setEditingTitle(true)}>
+                <h2 className="card-modal-title-text">{title}</h2>
+                {canEdit && (
+                  <button className="card-title-edit-btn" title={t('common.edit')}>
+                    <FiEdit2 size={14} />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
           <button className="card-modal-close" onClick={onClose}><FiX /></button>
         </div>
 
+        {/* Баннер наблюдателя */}
         {isViewer && (
           <div className="viewer-banner" style={{ margin: '0 24px', borderRadius: 8 }}>
-            <FiEyeOff size={14} /><span>{t('board.viewerCantEdit')}</span>
+            <FiEyeOff size={14} />
+            <span>{t('board.viewerCantEdit')}</span>
           </div>
         )}
 
+        {/* ===== ТЕЛО ===== */}
         <div className="card-modal-body">
           <div className="card-modal-main">
+
             {/* Метки */}
             {labels.length > 0 && (
               <div className="modal-section">
@@ -153,7 +228,9 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
                   {labels.map((label, i) => (
                     <div key={i} className="label-item" style={{ background: label.color }}>
                       {label.text}
-                      {canEdit && <button className="label-remove" onClick={() => removeLabel(i)}>×</button>}
+                      {canEdit && (
+                        <button className="label-remove" onClick={() => removeLabel(i)}>×</button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -171,7 +248,9 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
                         {a.username?.[0]?.toUpperCase()}
                       </div>
                       {a.username}
-                      {canEdit && <button className="assignee-remove" onClick={() => toggleAssignee(a)}>×</button>}
+                      {canEdit && (
+                        <button className="assignee-remove" onClick={() => toggleAssignee(a)}>×</button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -182,11 +261,17 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
             <div className="modal-section">
               <span className="modal-section-title">{t('card.description')}</span>
               {canEdit ? (
-                <textarea className="card-modal-desc" value={description}
+                <textarea
+                  className="card-modal-desc"
+                  value={description}
                   onChange={e => handleDescChange(e.target.value)}
-                  placeholder={t('card.descriptionPlaceholder')} />
+                  placeholder={t('card.descriptionPlaceholder')}
+                />
               ) : (
-                <p style={{ color: 'var(--text-normal)', fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                <p style={{
+                  color: description ? 'var(--text-normal)' : 'var(--text-muted)',
+                  fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap'
+                }}>
                   {description || t('card.descriptionPlaceholder')}
                 </p>
               )}
@@ -200,18 +285,27 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
                   {t('card.checklist')} ({checkDone}/{checkTotal})
                 </span>
                 <div className="checklist-progress">
-                  <div className={`checklist-progress-bar ${checkProgress === 100 ? 'complete' : ''}`}
-                    style={{ width: `${checkProgress}%` }} />
+                  <div
+                    className={`checklist-progress-bar ${checkProgress === 100 ? 'complete' : ''}`}
+                    style={{ width: `${checkProgress}%` }}
+                  />
                 </div>
                 {checklist.map((item, i) => (
                   <div key={i} className="checklist-item">
-                    <div className={`checklist-checkbox ${item.completed ? 'checked' : ''}`}
+                    <div
+                      className={`checklist-checkbox ${item.completed ? 'checked' : ''}`}
                       onClick={() => toggleCheckItem(i)}
-                      style={{ cursor: canEdit ? 'pointer' : 'default' }}>
+                      style={{ cursor: canEdit ? 'pointer' : 'default' }}
+                    >
                       {item.completed && <FiCheck size={12} color="white" />}
                     </div>
-                    <span className={`checklist-text ${item.completed ? 'completed' : ''}`}>{item.text}</span>
-                    {canEdit && <button className="assignee-remove" onClick={() => removeCheckItem(i)} style={{ marginLeft: 'auto' }}>×</button>}
+                    <span className={`checklist-text ${item.completed ? 'completed' : ''}`}>
+                      {item.text}
+                    </span>
+                    {canEdit && (
+                      <button className="assignee-remove" onClick={() => removeCheckItem(i)}
+                        style={{ marginLeft: 'auto' }}>×</button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -219,28 +313,39 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
 
             {showAddCheck && canEdit && (
               <div style={{ display: 'flex', gap: 8 }}>
-                <input type="text" value={newCheckItem} onChange={e => setNewCheckItem(e.target.value)}
-                  placeholder={t('card.checklistItem')} className="comment-input" autoFocus
-                  onKeyDown={e => { if (e.key === 'Enter') addCheckItem(); if (e.key === 'Escape') setShowAddCheck(false); }} />
+                <input
+                  type="text" value={newCheckItem}
+                  onChange={e => setNewCheckItem(e.target.value)}
+                  placeholder={t('card.checklistItem')}
+                  className="comment-input" autoFocus
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') addCheckItem();
+                    if (e.key === 'Escape') setShowAddCheck(false);
+                  }}
+                />
                 <button className="btn-primary btn-sm" onClick={addCheckItem}>{t('common.add')}</button>
               </div>
             )}
 
-            {/* Комментарии — доступны всем */}
+            {/* Комментарии */}
             <div className="modal-section comments-section">
               <span className="modal-section-title">
                 <FiMessageSquare style={{ marginRight: 6 }} />
                 {t('card.comments')} ({comments.length})
               </span>
+
               <div className="comment-input-wrapper">
                 <div className="comment-avatar" style={{ background: user?.avatar || '#5865f2' }}>
                   {user?.username?.[0]?.toUpperCase()}
                 </div>
-                <input type="text" className="comment-input" value={newComment}
-                  onChange={e => setNewComment(e.target.value)}
+                <input
+                  type="text" className="comment-input"
+                  value={newComment} onChange={e => setNewComment(e.target.value)}
                   placeholder={t('card.commentPlaceholder')}
-                  onKeyDown={e => { if (e.key === 'Enter') addComment(); }} />
+                  onKeyDown={e => { if (e.key === 'Enter') addComment(); }}
+                />
               </div>
+
               <div className="comment-list">
                 {comments.map((comment, i) => (
                   <div key={i} className="comment-item">
@@ -260,13 +365,14 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
             </div>
           </div>
 
-          {/* Sidebar */}
+          {/* ===== SIDEBAR ===== */}
           <div className="card-modal-sidebar">
             {canEdit && (
               <>
                 <div className="modal-section">
                   <span className="modal-section-title">{t('card.priority')}</span>
-                  <select className="priority-select" value={priority} onChange={e => handlePriorityChange(e.target.value)}>
+                  <select className="priority-select" value={priority}
+                    onChange={e => handlePriorityChange(e.target.value)}>
                     <option value="none">{t('card.priorities.none')}</option>
                     <option value="low">{t('card.priorities.low')}</option>
                     <option value="medium">{t('card.priorities.medium')}</option>
@@ -287,15 +393,18 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
 
                 {showAddLabel && (
                   <div className="add-label-form">
-                    <input type="text" value={newLabelText} onChange={e => setNewLabelText(e.target.value)}
-                      placeholder={t('card.labelText')} onKeyDown={e => { if (e.key === 'Enter') addLabel(); }} />
+                    <input type="text" value={newLabelText}
+                      onChange={e => setNewLabelText(e.target.value)}
+                      placeholder={t('card.labelText')}
+                      onKeyDown={e => { if (e.key === 'Enter') addLabel(); }} />
                     <div className="color-options">
                       {labelColors.map(c => (
                         <div key={c} className={`color-option ${newLabelColor === c ? 'selected' : ''}`}
                           style={{ background: c }} onClick={() => setNewLabelColor(c)} />
                       ))}
                     </div>
-                    <button className="btn-primary btn-sm" onClick={addLabel} style={{ width: '100%' }}>{t('common.add')}</button>
+                    <button className="btn-primary btn-sm" onClick={addLabel}
+                      style={{ width: '100%' }}>{t('common.add')}</button>
                   </div>
                 )}
 
@@ -308,9 +417,11 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
                     {members?.map(member => {
                       const isAssigned = assignees.some(a => a._id === (member.user?._id || member._id));
                       return (
-                        <div key={member.user?._id} className="search-result-item" onClick={() => toggleAssignee(member)}>
+                        <div key={member.user?._id} className="search-result-item"
+                          onClick={() => toggleAssignee(member)}>
                           <div className="search-result-info">
-                            <div className="member-avatar" style={{ background: member.user?.avatar || '#5865f2', width: 24, height: 24, fontSize: 10 }}>
+                            <div className="member-avatar"
+                              style={{ background: member.user?.avatar || '#5865f2', width: 24, height: 24, fontSize: 10 }}>
                               {member.user?.username?.[0]?.toUpperCase()}
                             </div>
                             <span className="search-result-name">{member.user?.username}</span>
