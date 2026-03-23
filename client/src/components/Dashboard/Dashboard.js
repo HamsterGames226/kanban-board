@@ -5,6 +5,7 @@ import { useTranslation } from '../../i18n';
 import { getAvatarUrl, getInitial, getAvatarColor } from '../../utils/avatar';
 import api from '../../utils/api';
 import { FiPlus, FiTrash2, FiUsers, FiClock, FiHash, FiArrowRight } from 'react-icons/fi';
+import Tutorial from '../Tutorial/Tutorial';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -19,6 +20,10 @@ function Dashboard() {
   const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [showTutorial, setShowTutorial] = useState(() => {
+    return !localStorage.getItem('tutorial_completed');
+  });
 
   useEffect(() => { fetchBoards(); }, []);
 
@@ -77,6 +82,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
+      {showTutorial && <Tutorial onComplete={() => setShowTutorial(false)} />}
       <div className="dashboard-sidebar">
         <div className="sidebar-section">
           <h3 className="sidebar-title">{t('dashboard.quickActions')}</h3>
@@ -150,27 +156,38 @@ function Dashboard() {
           <div className="board-card create-card" onClick={() => setShowCreate(true)}>
             <FiPlus className="create-icon" /><span>{t('dashboard.createBoard')}</span>
           </div>
-          {boards.map((board, i) => (
-            <div key={board._id} className="board-card" onClick={() => navigate(`/board/${board._id}`)}>
-              <div className="board-card-header" style={{ background: getBoardColor(i) }}>
-                <div className="board-card-title">{board.title}</div>
-                {board.owner?._id === user?._id && (
-                  <button className="board-delete-btn" onClick={e => deleteBoard(board._id, e)} title={t('common.delete')}><FiTrash2 /></button>
-                )}
-              </div>
-              <div className="board-card-body">
-                <p className="board-card-desc">{board.description || t('dashboard.noDescription')}</p>
-                <div className="board-card-footer">
-                  <div className="board-card-meta"><FiUsers /><span>{t('dashboard.members', { count: board.members?.length || 1 })}</span></div>
-                  <div className="board-card-meta"><FiClock /><span>{new Date(board.updatedAt).toLocaleDateString()}</span></div>
+          {boards.map((board, i) => {
+            const bg = board.background;
+            const headerStyle = bg?.type === 'image' && bg?.value
+              ? { backgroundImage: `url(${bg.value})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+              : bg?.type === 'gradient' && bg?.value
+              ? { background: bg.value }
+              : { background: getBoardColor(i) };
+
+            return (
+              <div key={board._id} className="board-card" onClick={() => navigate(`/board/${board._id}`)}>
+                <div className="board-card-header" style={headerStyle}>
+                  <div className="board-card-title">{board.title}</div>
+                  {board.owner?._id === user?._id && (
+                    <button className="board-delete-btn" onClick={e => deleteBoard(board._id, e)} title={t('common.delete')}>
+                      <FiTrash2 />
+                    </button>
+                  )}
                 </div>
-                <div className="board-card-members">
-                  {board.members?.slice(0, 5).map(m => renderMemberAvatar(m))}
-                  {board.members?.length > 5 && <div className="member-mini-avatar more">+{board.members.length - 5}</div>}
+                <div className="board-card-body">
+                  <p className="board-card-desc">{board.description || t('dashboard.noDescription')}</p>
+                  <div className="board-card-footer">
+                    <div className="board-card-meta"><FiUsers /><span>{t('dashboard.members', { count: board.members?.length || 1 })}</span></div>
+                    <div className="board-card-meta"><FiClock /><span>{new Date(board.updatedAt).toLocaleDateString()}</span></div>
+                  </div>
+                  <div className="board-card-members">
+                    {board.members?.slice(0, 5).map(m => renderMemberAvatar(m))}
+                    {board.members?.length > 5 && <div className="member-mini-avatar more">+{board.members.length - 5}</div>}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {boards.length === 0 && (

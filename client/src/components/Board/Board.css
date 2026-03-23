@@ -1466,3 +1466,55 @@
   border-radius: 6px;
   backdrop-filter: blur(4px);
 }
+.member-avatar-clickable {
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition);
+}
+
+.member-avatar-clickable:hover {
+  transform: scale(1.1);
+}
+
+.member-name-clickable {
+  cursor: pointer;
+}
+
+.member-name-clickable:hover {
+  color: var(--header-primary);
+  text-decoration: underline;
+}
+
+.role-dropdown {
+  background: var(--bg-floating);
+  border-radius: 8px;
+  padding: 4px;
+  margin-top: 4px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-high);
+}
+.bg-image-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.bg-image-thumb {
+  aspect-ratio: 16/9;
+  border-radius: var(--radius-md);
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: var(--transition);
+}
+
+.bg-image-thumb:hover {
+  transform: scale(1.03);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.bg-image-thumb.selected {
+  border-color: white;
+  box-shadow: 0 0 0 2px var(--brand-500);
+}

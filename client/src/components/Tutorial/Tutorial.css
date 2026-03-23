@@ -1,0 +1,130 @@
+.tutorial-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+.tutorial-modal {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: 40px;
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+  position: relative;
+  box-shadow: var(--shadow-high);
+  animation: modalSlideIn 0.3s ease;
+}
+
+.tutorial-skip {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: none; border: none;
+  color: var(--text-muted);
+  font-size: 20px; cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.tutorial-skip:hover { color: var(--text-normal); background: var(--bg-modifier-hover); }
+
+.tutorial-progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.tutorial-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.tutorial-dot.active {
+  background: var(--brand-500);
+  transform: scale(1.3);
+}
+
+.tutorial-dot.done { background: var(--green-360); }
+
+.tutorial-content {
+  animation: tutorialFade 0.3s ease;
+}
+
+@keyframes tutorialFade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tutorial-icon {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.tutorial-content h2 {
+  color: var(--header-primary);
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.tutorial-content p {
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.tutorial-nav {
+  display: flex;
+  align-items: center;
+  margin-top: 32px;
+  gap: 12px;
+}
+
+.tutorial-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.tutorial-btn.primary {
+  background: var(--brand-500);
+  color: white;
+}
+
+.tutorial-btn.primary:hover { background: var(--brand-560); }
+
+.tutorial-btn.secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-normal);
+}
+
+.tutorial-btn.secondary:hover { background: var(--bg-modifier-hover); }
+
+.tutorial-step-count {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 16px;
+}

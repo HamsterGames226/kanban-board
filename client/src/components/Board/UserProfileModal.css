@@ -1,0 +1,131 @@
+.user-profile-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.15s ease;
+}
+
+.user-profile-modal {
+  background: var(--bg-floating);
+  border-radius: var(--radius-xl);
+  width: 340px;
+  overflow: hidden;
+  box-shadow: var(--shadow-high);
+  animation: modalSlideIn 0.2s ease;
+  position: relative;
+}
+
+.up-banner {
+  height: 60px;
+  width: 100%;
+}
+
+.up-avatar-section {
+  position: relative;
+  margin-top: -40px;
+  margin-left: 20px;
+  width: 80px;
+  height: 80px;
+}
+
+.up-avatar {
+  border: 5px solid var(--bg-floating) !important;
+}
+
+.up-status-dot {
+  position: absolute;
+  bottom: 2px; right: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 3px solid var(--bg-floating);
+}
+
+.up-status-dot.online { background: #23a559; }
+.up-status-dot.offline { background: #80848e; }
+.up-status-dot.idle { background: #f0b232; }
+.up-status-dot.dnd { background: #ed4245; }
+
+.up-close {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: rgba(0,0,0,0.4);
+  border: none;
+  color: white;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.up-close:hover { background: rgba(0,0,0,0.6); }
+
+.up-body {
+  padding: 12px 20px 20px;
+}
+
+.up-name-section {
+  margin-bottom: 8px;
+}
+
+.up-display-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--header-primary);
+  margin: 0;
+}
+
+.up-username {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.up-status-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-normal);
+  font-size: 13px;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  margin: 8px 0;
+}
+
+.up-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 12px 0;
+}
+
+.up-section {
+  margin-bottom: 12px;
+}
+
+.up-section h3 {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--header-secondary);
+  margin-bottom: 6px;
+}
+
+.up-section p {
+  font-size: 14px;
+  color: var(--text-normal);
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.up-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-normal);
+  font-size: 13px;
+}

@@ -220,6 +220,22 @@ const en = {
     userAlreadyMember: 'User is already a member',
   },
 
+  // ===== TUTORIAL =====
+  tutorial: {
+    welcome: 'Welcome to TaskBoard!',
+    welcomeDesc: 'TaskBoard is a team task management tool. Let\'s quickly learn how everything works.',
+    createBoard: 'Create a Board',
+    dragDrop: 'Drag & Drop Tasks',
+    dragDropDesc: 'Drag a card from one column to another to update the task status. You can also drag columns themselves.',
+    cards: 'Customize Cards',
+    cardsDesc: 'Click on a card to add description, priority, checklist, labels, due date and assignees.',
+    collaborate: 'Work as a Team',
+    collaborateDesc: 'Invite colleagues by code or search. All changes update in real-time for all members.',
+    customize: 'Personalize',
+    customizeDesc: 'Upload an avatar, choose a board background, customize your profile. The app is available in Russian and English.',
+    getStarted: 'Get Started',
+    createBoardDesc: 'A board is your project. Click "Create Board" on the main page. Each board contains columns and task cards.',
+  },
   // ===== PROFILE =====
   profile: {
     title: 'Account Settings',
@@ -232,6 +248,7 @@ const en = {
     avatarUploaded: 'Avatar uploaded',
     avatarRemoved: 'Avatar removed',
     uploadError: 'Upload failed',
+    memberSince: 'Member Since',
 
     profileSection: 'Profile',
     displayName: 'Display Name',

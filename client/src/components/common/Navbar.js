@@ -37,7 +37,7 @@ function Navbar() {
               onClick={() => setLocale(l.code)}
               title={l.name}
             >
-              {l.flag}
+              <span>{l.code.toUpperCase()}</span>
             </button>
           ))}
         </div>

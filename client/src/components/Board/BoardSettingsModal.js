@@ -23,6 +23,16 @@ const BG_GRADIENTS = [
   'linear-gradient(135deg, #16222a 0%, #3a6073 100%)',
   'linear-gradient(135deg, #1f1c2c 0%, #928dab 100%)',
 ];
+const BG_IMAGES = [
+  'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800',
+  'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800',
+  'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800',
+  'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800',
+  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+  'https://images.unsplash.com/photo-1542281286-9e0a16bb7366?w=800',
+  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800',
+  'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800',
+];
 
 function BoardSettingsModal({ board, onClose, onUpdate }) {
   const { t } = useTranslation();
@@ -151,20 +161,29 @@ function BoardSettingsModal({ board, onClose, onUpdate }) {
           {/* Image URL */}
           {bgType === 'image' && (
             <div className="bg-image-section">
-              <input
-                type="url"
-                className="settings-input"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder={t('board.bgImagePlaceholder')}
-              />
+              <div className="bg-image-gallery">
+                {BG_IMAGES.map(url => (
+                  <div
+                    key={url}
+                    className={`bg-image-thumb ${imageUrl === url ? 'selected' : ''}`}
+                    style={{ backgroundImage: `url(${url})` }}
+                    onClick={() => setImageUrl(url)}
+                  />
+                ))}
+              </div>
+              <div style={{ marginTop: 12, position: 'relative' }}>
+                <input
+                  type="url"
+                  className="settings-input"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder={t('board.bgImagePlaceholder')}
+                />
+              </div>
               {imageUrl && (
                 <div className="bg-image-preview">
-                  <img
-                    src={imageUrl}
-                    alt="Preview"
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
+                  <img src={imageUrl} alt="Preview"
+                    onError={(e) => { e.target.style.display = 'none'; }} />
                 </div>
               )}
             </div>
