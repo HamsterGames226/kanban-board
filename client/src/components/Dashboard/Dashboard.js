@@ -93,7 +93,17 @@ function Dashboard() {
           <h3 className="sidebar-title">{t('dashboard.yourBoards')}</h3>
           <div className="sidebar-boards">
             {boards.map((board, i) => (
-              <div key={board._id} className="sidebar-board-item" onClick={() => navigate(`/board/${board._id}`)}>
+              <div 
+                key={board._id} 
+                className="sidebar-board-item" 
+                onClick={(e) => {
+                  if (e.ctrlKey || e.metaKey) {
+                    window.open(`/board/${board._id}`, '_blank');
+                  } else {
+                    navigate(`/board/${board._id}`);
+                  }
+                }}
+              >
                 <div className="sidebar-board-icon" style={{ background: getBoardColor(i) }}><FiHash /></div>
                 <span>{board.title}</span>
               </div>
@@ -165,7 +175,17 @@ function Dashboard() {
               : { background: getBoardColor(i) };
 
             return (
-              <div key={board._id} className="board-card" onClick={() => navigate(`/board/${board._id}`)}>
+              <div 
+                key={board._id} 
+                className="board-card" 
+                onClick={(e) => {
+                  if (e.ctrlKey || e.metaKey) {
+                    window.open(`/board/${board._id}`, '_blank');
+                  } else {
+                    navigate(`/board/${board._id}`);
+                  }
+                }}
+              >
                 <div className="board-card-header" style={headerStyle}>
                   <div className="board-card-title">{board.title}</div>
                   {board.owner?._id === user?._id && (

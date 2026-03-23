@@ -303,6 +303,32 @@ const en = {
     current: 'current',
     copyLabel: 'copy',
   },
+
+  hotkeys: {
+    title: 'Keyboard Shortcuts',
+    navigation: 'Navigation',
+    board: 'Board',
+    cards: 'Cards',
+    general: 'General',
+    goHome: 'Go to dashboard',
+    goProfile: 'Go to profile',
+    closeModal: 'Close modal',
+    newCard: 'New card',
+    newColumn: 'New column',
+    search: 'Search',
+    toggleMembers: 'Toggle members',
+    invite: 'Invite',
+    boardSettings: 'Board settings',
+    editCard: 'Edit card',
+    addLabel: 'Add label',
+    setDueDate: 'Set due date',
+    addComment: 'Add comment',
+    deleteCard: 'Delete',
+    showHelp: 'Show shortcuts',
+  },
+
+  markdown: { write: 'Write', preview: 'Preview' },
+  toggleDescPreview: 'Toggle card descriptions',
 };
 
 export default en;

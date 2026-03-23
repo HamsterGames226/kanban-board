@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { I18nProvider } from './i18n';
+import { HotkeyProvider } from './components/Hotkeys/HotkeyProvider';
+import HotkeyHelp from './components/Hotkeys/HotkeyHelp';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -13,13 +15,7 @@ import './App.css';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner" />
-      </div>
-    );
-  }
+  if (loading) return <div className="loading-screen"><div className="loading-spinner" /></div>;
   return user ? children : <Navigate to="/login" />;
 }
 
@@ -38,6 +34,7 @@ function AppContent() {
         } />
         <Route path="/" element={<Navigate to="/dashboard" />} />
       </Routes>
+      <HotkeyHelp />
     </Router>
   );
 }
@@ -46,7 +43,9 @@ function App() {
   return (
     <I18nProvider>
       <AuthProvider>
-        <AppContent />
+        <HotkeyProvider>
+          <AppContent />
+        </HotkeyProvider>
       </AuthProvider>
     </I18nProvider>
   );

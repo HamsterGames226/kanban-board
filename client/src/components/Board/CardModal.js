@@ -3,6 +3,9 @@ import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../i18n';
 import api from '../../utils/api';
 import { FiX, FiTrash2, FiCheck, FiTag, FiUsers, FiMessageSquare, FiCheckSquare, FiEyeOff, FiEdit2 } from 'react-icons/fi';
+import MarkdownEditor from './MarkdownEditor';
+import MarkdownRenderer from './MarkdownRenderer';
+import { renderAvatar } from '../../utils/avatar';
 
 function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
   const { t } = useTranslation();
@@ -261,19 +264,21 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
             <div className="modal-section">
               <span className="modal-section-title">{t('card.description')}</span>
               {canEdit ? (
-                <textarea
-                  className="card-modal-desc"
+                <MarkdownEditor
                   value={description}
-                  onChange={e => handleDescChange(e.target.value)}
+                  onChange={handleDescChange}
                   placeholder={t('card.descriptionPlaceholder')}
                 />
               ) : (
-                <p style={{
-                  color: description ? 'var(--text-normal)' : 'var(--text-muted)',
-                  fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap'
-                }}>
-                  {description || t('card.descriptionPlaceholder')}
-                </p>
+                <div style={{ padding: 8 }}>
+                  {description ? (
+                    <MarkdownRenderer content={description} />
+                  ) : (
+                    <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+                      {t('card.descriptionPlaceholder')}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
 
@@ -335,9 +340,7 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
               </span>
 
               <div className="comment-input-wrapper">
-                <div className="comment-avatar" style={{ background: user?.avatar || '#5865f2' }}>
-                  {user?.username?.[0]?.toUpperCase()}
-                </div>
+                {renderAvatar(user, 32, 'comment-avatar')}
                 <input
                   type="text" className="comment-input"
                   value={newComment} onChange={e => setNewComment(e.target.value)}
@@ -349,9 +352,7 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
               <div className="comment-list">
                 {comments.map((comment, i) => (
                   <div key={i} className="comment-item">
-                    <div className="comment-avatar" style={{ background: comment.user?.avatar || '#5865f2' }}>
-                      {comment.user?.username?.[0]?.toUpperCase()}
-                    </div>
+                    {renderAvatar(comment.user, 32, 'comment-avatar')}
                     <div className="comment-content">
                       <span className="comment-author">
                         {comment.user?.username}

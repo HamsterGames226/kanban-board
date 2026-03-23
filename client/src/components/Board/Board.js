@@ -11,7 +11,13 @@ import CardModal from './CardModal';
 import InviteModal from './InviteModal';
 import MembersBar from './MembersBar';
 import BoardSettingsModal from './BoardSettingsModal';
-import { FiPlus, FiUserPlus, FiUsers, FiSettings, FiEyeOff } from 'react-icons/fi';
+
+// Импорты из фото 2
+import { HotkeyProvider, useHotkeys } from '../Hotkeys/HotkeyProvider';
+import HotkeyHelp from '../Hotkeys/HotkeyHelp';
+
+// Добавлен FiEye из фото 1
+import { FiPlus, FiUserPlus, FiUsers, FiSettings, FiEyeOff, FiEye } from 'react-icons/fi';
 import './Board.css';
 
 function Board() {
@@ -29,6 +35,41 @@ function Board() {
   const [showSettings, setShowSettings] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [addingColumn, setAddingColumn] = useState(false);
+
+  // Стейт для превью описания (из фото 2)
+  const [showDescPreview, setShowDescPreview] = useState(() => {
+    return localStorage.getItem('showDescPreview') !== 'false';
+  });
+
+  const toggleDescPreview = () => {
+    const next = !showDescPreview;
+    setShowDescPreview(next);
+    localStorage.setItem('showDescPreview', String(next));
+  };
+
+  // Хуки горячих клавиш (из фото 2)
+  const { registerHotkey } = useHotkeys();
+
+  useEffect(() => {
+    const unsubs = [
+      registerHotkey('h', () => navigate('/dashboard')),
+      registerHotkey('p', () => navigate('/profile')),
+      registerHotkey('n', () => {
+        // Открыть форму добавления карточки в первом столбце
+        if (board?.columns?.[0] && canEdit()) {
+          setAddingColumn(false);
+          // Используем кастомный ивент
+          window.dispatchEvent(new CustomEvent('hotkey:newcard'));
+        }
+      }),
+      registerHotkey('shift+n', () => canEdit() && setAddingColumn(true)),
+      registerHotkey('m', () => setShowMembers(prev => !prev)),
+      registerHotkey('i', () => setShowInvite(true)),
+      registerHotkey('s', () => isAdminOrOwner() && setShowSettings(true)),
+    ];
+
+    return () => unsubs.forEach(fn => fn());
+  }, [board, registerHotkey, navigate]);
 
   // ===== Роль текущего пользователя =====
   const getUserRole = useCallback(() => {
@@ -93,7 +134,7 @@ function Board() {
 
   // ===== Drag & Drop =====
   const handleDragEnd = async (result) => {
-    if (isViewer()) return; // Наблюдатели не могут перетаскивать
+    if (isViewer()) return; 
 
     const { source, destination, type } = result;
     if (!destination) return;
@@ -223,6 +264,15 @@ function Board() {
             )}
           </div>
 
+          {/* Кнопка переключения превью из фото 1 */}
+          <button
+            className={`board-action-btn ${showDescPreview ? 'active' : ''}`}
+            onClick={toggleDescPreview}
+            title={t('board.toggleDescPreview')}
+          >
+            <FiEye />
+          </button>
+
           <button className="board-action-btn" onClick={() => setShowMembers(!showMembers)}>
             <FiUsers /><span>{t('board.members')}</span>
           </button>
@@ -259,6 +309,8 @@ function Board() {
                           onUpdate={fetchBoard}
                           members={board.members}
                           userRole={getUserRole()}
+                          // Пропс из фото 1
+                          showDescPreview={showDescPreview}
                         />
                       </div>
                     )}

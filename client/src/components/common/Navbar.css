@@ -257,3 +257,7 @@
   color: white;
   box-shadow: 0 2px 8px rgba(88, 101, 242, 0.4);
 }
+
+a[target="_blank"]::after {
+  content: '';
+}

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { useTranslation } from '../../i18n';
+import { renderAvatar } from '../../utils/avatar';
 import api from '../../utils/api';
 import CardContextMenu from './CardContextMenu';
+import MarkdownRenderer from './MarkdownRenderer';
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { BsClock, BsChatDots, BsCheckSquare } from 'react-icons/bs';
 
-function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, members, userRole, allColumns }) {
+function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, members, userRole, allColumns, showDescPreview }) {
   const { t } = useTranslation();
   const [addingCard, setAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
@@ -56,6 +58,24 @@ function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, membe
     return { text: d.toLocaleDateString(), className: '' };
   };
 
+  // Обрезать описание для превью
+  const truncateDesc = (text, maxLen = 80) => {
+    if (!text) return '';
+    // Убираем markdown-форматирование для превью
+    const plain = text
+      .replace(/#{1,6}\s/g, '')
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/`(.*?)`/g, '$1')
+      .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+      .replace(/!\[.*?\]\(.*?\)/g, '')
+      .replace(/>\s/g, '')
+      .replace(/---/g, '')
+      .trim();
+    if (plain.length <= maxLen) return plain;
+    return plain.substring(0, maxLen) + '...';
+  };
+
   return (
     <div className="column">
       <div className="column-header" {...dragHandleProps}>
@@ -103,6 +123,7 @@ function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, membe
                 const due = formatDueDate(cardData.dueDate);
                 const checkDone = cardData.checklist?.filter(c => c.completed).length || 0;
                 const checkTotal = cardData.checklist?.length || 0;
+                const descPreview = showDescPreview ? truncateDesc(cardData.description) : '';
 
                 return (
                   <Draggable key={cardData._id} draggableId={cardData._id} index={index}
@@ -112,15 +133,26 @@ function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, membe
                         className={`card ${snapshot.isDragging ? 'dragging' : ''}`}
                         onClick={() => onCardClick(cardData)}
                         onContextMenu={(e) => handleCardContextMenu(e, cardData)}>
+
                         <div className={`card-priority-bar ${cardData.priority}`} />
+
                         {cardData.labels?.length > 0 && (
                           <div className="card-labels">
                             {cardData.labels.map((label, i) => (
-                              <span key={i} className="card-label" style={{ background: label.color }}>{label.text}</span>
+                              <span key={i} className="card-label" style={{ background: label.color }}>
+                                {label.text}
+                              </span>
                             ))}
                           </div>
                         )}
+
                         <div className="card-title">{cardData.title}</div>
+
+                        {/* Превью описания */}
+                        {descPreview && (
+                          <div className="card-desc-preview">{descPreview}</div>
+                        )}
+
                         <div className="card-footer">
                           <div className="card-meta">
                             {cardData.priority !== 'none' && (
@@ -128,18 +160,36 @@ function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, membe
                                 {t(`card.priorityLabels.${cardData.priority}`)}
                               </span>
                             )}
-                            {due && <span className={`card-due ${due.className}`}><BsClock size={11} />{due.text}</span>}
-                            {cardData.comments?.length > 0 && <span className="card-meta-item"><BsChatDots size={12} />{cardData.comments.length}</span>}
-                            {checkTotal > 0 && <span className="card-meta-item"><BsCheckSquare size={11} />{checkDone}/{checkTotal}</span>}
+                            {due && (
+                              <span className={`card-due ${due.className}`}>
+                                <BsClock size={11} />{due.text}
+                              </span>
+                            )}
+                            {cardData.comments?.length > 0 && (
+                              <span className="card-meta-item">
+                                <BsChatDots size={12} />{cardData.comments.length}
+                              </span>
+                            )}
+                            {checkTotal > 0 && (
+                              <span className="card-meta-item">
+                                <BsCheckSquare size={11} />{checkDone}/{checkTotal}
+                              </span>
+                            )}
                           </div>
+
+                          {/* Аватарки исполнителей — настоящие фото */}
                           {cardData.assignees?.length > 0 && (
                             <div className="card-assignees">
                               {cardData.assignees.slice(0, 3).map(a => (
-                                <div key={a._id} className="card-assignee-avatar"
-                                  style={{ background: a.avatar || '#5865f2' }} title={a.username}>
-                                  {a.username?.[0]?.toUpperCase()}
-                                </div>
+                                <React.Fragment key={a._id}>
+                                  {renderAvatar(a, 22, 'card-assignee-avatar')}
+                                </React.Fragment>
                               ))}
+                              {cardData.assignees.length > 3 && (
+                                <div className="card-assignee-avatar card-assignee-more">
+                                  +{cardData.assignees.length - 3}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -177,7 +227,6 @@ function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, membe
         )
       )}
 
-      {/* Контекстное меню */}
       {contextMenu && (
         <CardContextMenu
           card={contextMenu.card}

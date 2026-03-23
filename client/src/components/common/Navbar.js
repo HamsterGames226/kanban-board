@@ -19,13 +19,35 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        <Link to="/dashboard" className="navbar-brand">
+        <Link 
+          to="/dashboard" 
+          className="navbar-brand"
+          onClick={(e) => {
+            // Если зажат Ctrl/Cmd — открыть в новой вкладке
+            if (e.ctrlKey || e.metaKey) {
+              e.preventDefault();
+              window.open('/dashboard', '_blank');
+            }
+          }}
+        >
           <div className="navbar-logo"><FiLayout /></div>
           <span>TaskBoard</span>
         </Link>
       </div>
       <div className="navbar-center">
-        <Link to="/dashboard" className="nav-link"><FiHome /><span>{t('nav.home')}</span></Link>
+        <Link 
+          to="/dashboard" 
+          className="nav-link" 
+          onClick={(e) => {
+            // Если зажат Ctrl/Cmd — открыть в новой вкладке
+            if (e.ctrlKey || e.metaKey) {
+              e.preventDefault();
+              window.open('/dashboard', '_blank');
+            }
+          }}
+        >
+          <FiHome /><span>{t('nav.home')}</span>
+        </Link>
       </div>
       <div className="navbar-right">
         {/* Language switcher */}

@@ -317,6 +317,32 @@ const ru = {
     current: 'текущий',
     copyLabel: 'копия',
   },
+
+  hotkeys: {
+    title: 'Горячие клавиши',
+    navigation: 'Навигация',
+    board: 'Доска',
+    cards: 'Карточки',
+    general: 'Общие',
+    goHome: 'На главную',
+    goProfile: 'Профиль',
+    closeModal: 'Закрыть окно',
+    newCard: 'Новая карточка',
+    newColumn: 'Новый столбец',
+    search: 'Поиск',
+    toggleMembers: 'Участники',
+    invite: 'Пригласить',
+    boardSettings: 'Настройки доски',
+    editCard: 'Редактировать',
+    addLabel: 'Добавить метку',
+    setDueDate: 'Установить срок',
+    addComment: 'Комментарий',
+    deleteCard: 'Удалить',
+    showHelp: 'Показать подсказки',
+  },
+
+  markdown: { write: 'Редактор', preview: 'Просмотр' },
+  toggleDescPreview: 'Показать/скрыть описание карточек',
 };
 
 export default ru;
