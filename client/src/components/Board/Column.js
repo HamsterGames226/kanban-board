@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { useTranslation } from '../../i18n';
 import api from '../../utils/api';
+import CardContextMenu from './CardContextMenu';
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { BsClock, BsChatDots, BsCheckSquare } from 'react-icons/bs';
 
-function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, members, userRole }) {
+function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, members, userRole, allColumns }) {
   const { t } = useTranslation();
   const [addingCard, setAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
+  const [contextMenu, setContextMenu] = useState(null);
 
   const canEdit = ['member', 'admin', 'owner'].includes(userRole);
   const canDeleteColumn = ['admin', 'owner'].includes(userRole);
@@ -35,6 +37,12 @@ function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, membe
     if (!window.confirm(t('board.deleteColumnConfirm', { name: column.title }))) return;
     try { await api.delete(`/columns/${column._id}`); }
     catch (err) { alert(err.response?.data?.message || t('common.error')); }
+  };
+
+  const handleCardContextMenu = (e, card) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ card, position: { x: e.clientX, y: e.clientY } });
   };
 
   const formatDueDate = (date) => {
@@ -71,8 +79,6 @@ function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, membe
           )}
           <span className="column-count">{column.cards?.length || 0}</span>
         </div>
-
-        {/* Кнопки — только для тех кто может */}
         {canEdit && (
           <div className="column-actions">
             <button className="column-action-btn"
@@ -93,41 +99,42 @@ function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, membe
           <div className="column-cards" ref={provided.innerRef} {...provided.droppableProps}
             style={{ background: snapshot.isDraggingOver ? 'rgba(88, 101, 242, 0.05)' : 'transparent' }}>
             <div className="column-cards-inner">
-              {column.cards?.map((card, index) => {
-                const due = formatDueDate(card.dueDate);
-                const checkDone = card.checklist?.filter(c => c.completed).length || 0;
-                const checkTotal = card.checklist?.length || 0;
+              {column.cards?.map((cardData, index) => {
+                const due = formatDueDate(cardData.dueDate);
+                const checkDone = cardData.checklist?.filter(c => c.completed).length || 0;
+                const checkTotal = cardData.checklist?.length || 0;
 
                 return (
-                  <Draggable key={card._id} draggableId={card._id} index={index}
+                  <Draggable key={cardData._id} draggableId={cardData._id} index={index}
                     isDragDisabled={!canEdit}>
                     {(provided, snapshot) => (
                       <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
                         className={`card ${snapshot.isDragging ? 'dragging' : ''}`}
-                        onClick={() => onCardClick(card)}>
-                        <div className={`card-priority-bar ${card.priority}`} />
-                        {card.labels?.length > 0 && (
+                        onClick={() => onCardClick(cardData)}
+                        onContextMenu={(e) => handleCardContextMenu(e, cardData)}>
+                        <div className={`card-priority-bar ${cardData.priority}`} />
+                        {cardData.labels?.length > 0 && (
                           <div className="card-labels">
-                            {card.labels.map((label, i) => (
+                            {cardData.labels.map((label, i) => (
                               <span key={i} className="card-label" style={{ background: label.color }}>{label.text}</span>
                             ))}
                           </div>
                         )}
-                        <div className="card-title">{card.title}</div>
+                        <div className="card-title">{cardData.title}</div>
                         <div className="card-footer">
                           <div className="card-meta">
-                            {card.priority !== 'none' && (
-                              <span className={`priority-badge ${card.priority}`}>
-                                {t(`card.priorityLabels.${card.priority}`)}
+                            {cardData.priority !== 'none' && (
+                              <span className={`priority-badge ${cardData.priority}`}>
+                                {t(`card.priorityLabels.${cardData.priority}`)}
                               </span>
                             )}
                             {due && <span className={`card-due ${due.className}`}><BsClock size={11} />{due.text}</span>}
-                            {card.comments?.length > 0 && <span className="card-meta-item"><BsChatDots size={12} />{card.comments.length}</span>}
+                            {cardData.comments?.length > 0 && <span className="card-meta-item"><BsChatDots size={12} />{cardData.comments.length}</span>}
                             {checkTotal > 0 && <span className="card-meta-item"><BsCheckSquare size={11} />{checkDone}/{checkTotal}</span>}
                           </div>
-                          {card.assignees?.length > 0 && (
+                          {cardData.assignees?.length > 0 && (
                             <div className="card-assignees">
-                              {card.assignees.slice(0, 3).map(a => (
+                              {cardData.assignees.slice(0, 3).map(a => (
                                 <div key={a._id} className="card-assignee-avatar"
                                   style={{ background: a.avatar || '#5865f2' }} title={a.username}>
                                   {a.username?.[0]?.toUpperCase()}
@@ -147,7 +154,6 @@ function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, membe
         )}
       </Droppable>
 
-      {/* Добавить карточку — только member+ */}
       {canEdit && (
         addingCard ? (
           <div className="add-card-form">
@@ -169,6 +175,21 @@ function Column({ column, boardId, dragHandleProps, onCardClick, onUpdate, membe
             <FiPlus /><span>{t('board.addCard')}</span>
           </button>
         )
+      )}
+
+      {/* Контекстное меню */}
+      {contextMenu && (
+        <CardContextMenu
+          card={contextMenu.card}
+          boardId={boardId}
+          columns={allColumns}
+          members={members}
+          userRole={userRole}
+          position={contextMenu.position}
+          onClose={() => setContextMenu(null)}
+          onUpdate={onUpdate}
+          onOpenCard={onCardClick}
+        />
       )}
     </div>
   );

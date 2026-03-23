@@ -291,6 +291,18 @@ const en = {
     deleteForever: 'Delete forever',
     accountDeleted: 'Account deleted',
   },
+
+  contextMenu: {
+    open: 'Open card',
+    moveTo: 'Move to...',
+    setPriority: 'Set priority',
+    assign: 'Assign',
+    duplicate: 'Duplicate',
+    copyLink: 'Copy link',
+    delete: 'Delete card',
+    current: 'current',
+    copyLabel: 'copy',
+  },
 };
 
 export default en;

@@ -305,6 +305,18 @@ const ru = {
     deleteForever: 'Удалить навсегда',
     accountDeleted: 'Аккаунт удалён',
   },
+
+  contextMenu: {
+    open: 'Открыть карточку',
+    moveTo: 'Переместить в...',
+    setPriority: 'Установить приоритет',
+    assign: 'Назначить',
+    duplicate: 'Дублировать',
+    copyLink: 'Скопировать ссылку',
+    delete: 'Удалить карточку',
+    current: 'текущий',
+    copyLabel: 'копия',
+  },
 };
 
 export default ru;
