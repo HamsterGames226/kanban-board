@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../i18n';
+import { useHotkeys } from '../Hotkeys/HotkeyProvider';
 import { getAvatarUrl, getInitial, getAvatarColor } from '../../utils/avatar';
-import { FiLayout, FiLogOut, FiHome, FiChevronDown, FiSettings } from 'react-icons/fi';
+import { FiLayout, FiLogOut, FiHome, FiChevronDown, FiSettings, FiHelpCircle } from 'react-icons/fi';
 import './Navbar.css';
 
 function Navbar() {
   const { t, locale, setLocale, getAvailableLocales } = useTranslation();
   const { user, logout } = useAuth();
+  const { setShowHelp } = useHotkeys();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -19,33 +21,15 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        <Link 
-          to="/dashboard" 
-          className="navbar-brand"
-          onClick={(e) => {
-            // Если зажат Ctrl/Cmd — открыть в новой вкладке
-            if (e.ctrlKey || e.metaKey) {
-              e.preventDefault();
-              window.open('/dashboard', '_blank');
-            }
-          }}
-        >
+        <Link to="/dashboard" className="navbar-brand">
           <div className="navbar-logo"><FiLayout /></div>
           <span>TaskBoard</span>
         </Link>
       </div>
       <div className="navbar-center">
-        <Link 
-          to="/dashboard" 
-          className="nav-link" 
-          onClick={(e) => {
-            // Если зажат Ctrl/Cmd — открыть в новой вкладке
-            if (e.ctrlKey || e.metaKey) {
-              e.preventDefault();
-              window.open('/dashboard', '_blank');
-            }
-          }}
-        >
+        <Link to="/dashboard" className="nav-link" onClick={(e) => {
+          if (e.ctrlKey || e.metaKey) { e.preventDefault(); window.open('/dashboard', '_blank'); }
+        }}>
           <FiHome /><span>{t('nav.home')}</span>
         </Link>
       </div>
@@ -53,16 +37,17 @@ function Navbar() {
         {/* Language switcher */}
         <div className="lang-switcher">
           {availableLocales.map(l => (
-            <button
-              key={l.code}
-              className={`lang-btn ${locale === l.code ? 'active' : ''}`}
-              onClick={() => setLocale(l.code)}
-              title={l.name}
-            >
+            <button key={l.code} className={`lang-btn ${locale === l.code ? 'active' : ''}`}
+              onClick={() => setLocale(l.code)} title={l.name}>
               <span>{l.code.toUpperCase()}</span>
             </button>
           ))}
         </div>
+
+        {/* Hotkeys help button */}
+        <button className="navbar-icon-btn" onClick={() => setShowHelp(true)} title={t('hotkeys.title')}>
+          <FiHelpCircle />
+        </button>
 
         <div className="user-menu" onClick={() => setShowDropdown(!showDropdown)}>
           {avatarUrl ? (
@@ -94,6 +79,10 @@ function Navbar() {
                 <div className="dropdown-divider" />
                 <button className="dropdown-item" onClick={() => { navigate('/profile'); setShowDropdown(false); }}>
                   <FiSettings /><span>{t('nav.settings')}</span>
+                </button>
+                <button className="dropdown-item" onClick={() => { setShowHelp(true); setShowDropdown(false); }}>
+                  <FiHelpCircle /><span>{t('hotkeys.title')}</span>
+                  <kbd className="dropdown-kbd">?</kbd>
                 </button>
                 <div className="dropdown-divider" />
                 <button className="dropdown-item danger" onClick={handleLogout}>

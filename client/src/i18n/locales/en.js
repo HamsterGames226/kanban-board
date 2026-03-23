@@ -263,6 +263,11 @@ const en = {
     language: 'Interface Language',
     languageDesc: 'Choose display language',
 
+    // Видимость у доски
+    boardPreferences: 'Board Preferences',
+    showDescPreview: 'Show description on cards',
+    showDescPreviewDesc: 'Display description preview directly on board cards',
+
     account: 'Account',
     changeUsername: 'Change Username',
     newUsername: 'New username',

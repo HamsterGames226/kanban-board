@@ -17,7 +17,7 @@ import { HotkeyProvider, useHotkeys } from '../Hotkeys/HotkeyProvider';
 import HotkeyHelp from '../Hotkeys/HotkeyHelp';
 
 // Добавлен FiEye из фото 1
-import { FiPlus, FiUserPlus, FiUsers, FiSettings, FiEyeOff, FiEye } from 'react-icons/fi';
+import { FiPlus, FiUserPlus, FiUsers, FiSettings, FiEyeOff } from 'react-icons/fi';
 import './Board.css';
 
 function Board() {
@@ -263,15 +263,6 @@ function Board() {
               <div className="header-member-avatar more">+{board.members.length - 5}</div>
             )}
           </div>
-
-          {/* Кнопка переключения превью из фото 1 */}
-          <button
-            className={`board-action-btn ${showDescPreview ? 'active' : ''}`}
-            onClick={toggleDescPreview}
-            title={t('board.toggleDescPreview')}
-          >
-            <FiEye />
-          </button>
 
           <button className="board-action-btn" onClick={() => setShowMembers(!showMembers)}>
             <FiUsers /><span>{t('board.members')}</span>

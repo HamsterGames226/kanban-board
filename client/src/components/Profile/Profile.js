@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../i18n';
 import { getAvatarUrl, getInitial, getAvatarColor } from '../../utils/avatar';
 import api from '../../utils/api';
-import { FiCamera, FiTrash2, FiSave, FiLock, FiMail, FiEdit2 } from 'react-icons/fi';
+import { FiCamera, FiTrash2, FiSave, FiLock, FiMail, FiEdit2, FiEye } from 'react-icons/fi';
 import './Profile.css';
 
 function Profile() {
@@ -33,6 +33,17 @@ function Profile() {
 
   const [message, setMessage] = useState({ text: '', type: '' });
   const [saving, setSaving] = useState(false);
+
+  // Состояние для предпросмотра описания
+  const [showDescPreview, setShowDescPreview] = useState(() => {
+    return localStorage.getItem('showDescPreview') !== 'false';
+  });
+
+  const toggleDescPreview = () => {
+    const next = !showDescPreview;
+    setShowDescPreview(next);
+    localStorage.setItem('showDescPreview', String(next));
+  };
 
   const availableLocales = getAvailableLocales();
   const colors = ['#5865f2', '#57f287', '#fee75c', '#eb459e', '#ed4245', '#f0b232', '#00a8fc', '#9b59b6', '#2ecc71'];
@@ -254,6 +265,28 @@ function Profile() {
                 {locale === l.code && <span className="language-check">✓</span>}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* ===== НАСТРОЙКИ ДОСКИ ===== */}
+        <div className="profile-section">
+          <h2>{t('profile.boardPreferences')}</h2>
+          <div className="preference-item">
+            <div className="preference-info">
+              <div className="preference-icon"><FiEye /></div>
+              <div>
+                <div className="preference-title">{t('profile.showDescPreview')}</div>
+                <div className="preference-desc">{t('profile.showDescPreviewDesc')}</div>
+              </div>
+            </div>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={showDescPreview}
+                onChange={toggleDescPreview}
+              />
+              <span className="toggle-slider" />
+            </label>
           </div>
         </div>
 
