@@ -46,6 +46,22 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// Get any user's profile by ID
+router.get('/user/:userId', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId)
+      .select('username displayName bio avatar customAvatar statusText status createdAt');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Пользователь не найден' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Get user profile error:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
 // Update profile
 router.put('/', auth, async (req, res) => {
   try {
