@@ -1,11 +1,19 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import ru from './locales/ru';
 import en from './locales/en';
+import es from './locales/es';
+import fr from './locales/fr';
+import de from './locales/de';
+import zh from './locales/zh';
 
 // Реестр языков: флаги удалены, добавлены короткие имена
 const locales = {
   ru: { name: 'Русский', shortName: 'RU', data: ru },
   en: { name: 'English', shortName: 'EN', data: en },
+  es: { name: 'Español', shortName: 'ES', data: es },
+  fr: { name: 'Français', shortName: 'FR', data: fr },
+  de: { name: 'Deutsch', shortName: 'DE', data: de },
+  zh: { name: '中文', shortName: 'ZH', data: zh },
 };
 
 const I18nContext = createContext(null);

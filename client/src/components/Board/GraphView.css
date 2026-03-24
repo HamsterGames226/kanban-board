@@ -1,0 +1,114 @@
+.graph-view-container {
+  flex: 1;
+  background: #313338;
+  border-radius: 8px;
+  margin: 16px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  animation: graphFadeIn 0.3s ease-out;
+}
+
+@keyframes graphFadeIn {
+  from { opacity: 0; transform: scale(0.995); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.graph-legend {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: #2b2d31; 
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  pointer-events: all; /* Enabled for the buttons */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.24);
+  min-width: 160px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #dbdee1;
+  pointer-events: none;
+}
+
+.legend-item .graph-dot {
+  width: 10px !important;
+  height: 10px !important;
+  min-width: 10px !important;
+  max-width: 10px !important;
+  min-height: 10px !important;
+  max-height: 10px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+  aspect-ratio: 1 / 1 !important;
+  display: block !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+.graph-dot.col { background: #5865f2 !important; }
+.graph-dot.card { background: #b5bac1 !important; }
+.graph-dot.user { background: #f470ad !important; }
+
+/* Mode Toggle */
+.graph-mode-toggle {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.graph-mode-btn {
+  flex: 1;
+  height: 32px;
+  background: #1e1f22;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #b5bac1;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.graph-mode-btn:hover {
+  background: #4e5058;
+  color: #fff;
+}
+
+.graph-mode-btn.active {
+  background: #5865f2;
+  color: #fff;
+  border-color: #5865f2;
+}
+
+/* Force graph canvas focus outline fix */
+.graph-view-container canvas {
+  outline: none;
+}
+
+.graph-controls-hint {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(30, 31, 34, 0.8);
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #949ba4;
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}

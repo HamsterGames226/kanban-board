@@ -35,6 +35,14 @@ function HotkeyHelp() {
         { combo: '?', desc: t('hotkeys.showHelp') },
         { combo: 'Ctrl + Click', desc: t('hotkeys.openNewTab') },
       ]
+    },
+    {
+      title: t('hotkeys.views'),
+      keys: [
+        { combo: '1', desc: t('hotkeys.viewKanban') },
+        { combo: '2', desc: t('hotkeys.viewCalendar') },
+        { combo: '3', desc: t('hotkeys.viewGraph') },
+      ]
     }
   ];
 

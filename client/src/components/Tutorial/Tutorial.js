@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from '../../i18n';
-import { FiX, FiArrowRight, FiArrowLeft, FiLayout, FiPlus, FiUsers, FiMove, FiCheckSquare, FiSettings } from 'react-icons/fi';
+import { 
+  FiX, FiArrowRight, FiArrowLeft, FiLayout, FiPlus, 
+  FiUsers, FiMove, FiCheckSquare, FiSettings, 
+  FiCalendar, FiShare2, FiZap, FiMousePointer 
+} from 'react-icons/fi';
 import './Tutorial.css';
 
 function Tutorial({ onComplete }) {
@@ -33,16 +37,28 @@ function Tutorial({ onComplete }) {
       color: '#eb459e',
     },
     {
-      icon: <FiUsers size={48} />,
-      title: t('tutorial.collaborate'),
-      desc: t('tutorial.collaborateDesc'),
+      icon: <FiCalendar size={48} />,
+      title: t('tutorial.views'),
+      desc: t('tutorial.viewsDesc'),
       color: '#00a8fc',
     },
     {
-      icon: <FiSettings size={48} />,
-      title: t('tutorial.customize'),
-      desc: t('tutorial.customizeDesc'),
+      icon: <FiMousePointer size={48} />,
+      title: t('tutorial.contextMenu'),
+      desc: t('tutorial.contextMenuDesc'),
       color: '#f0b232',
+    },
+    {
+      icon: <FiZap size={48} />,
+      title: t('tutorial.hotkeys'),
+      desc: t('tutorial.hotkeysDesc'),
+      color: '#ed4245',
+    },
+    {
+      icon: <FiUsers size={48} />,
+      title: t('tutorial.collaborate'),
+      desc: t('tutorial.collaborateDesc'),
+      color: '#5865f2',
     },
   ];
 
@@ -57,11 +73,6 @@ function Tutorial({ onComplete }) {
   return (
     <div className="tutorial-overlay">
       <div className="tutorial-modal">
-        <button className="tutorial-skip" onClick={handleComplete}>
-          <FiX />
-        </button>
-
-        {/* Progress dots */}
         <div className="tutorial-progress">
           {steps.map((_, i) => (
             <div key={i} className={`tutorial-dot ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`}
@@ -69,7 +80,10 @@ function Tutorial({ onComplete }) {
           ))}
         </div>
 
-        {/* Content */}
+        <button className="tutorial-skip" onClick={handleComplete}>
+          <FiX />
+        </button>
+
         <div className="tutorial-content" key={step}>
           <div className="tutorial-icon" style={{ color: current.color, background: `${current.color}15` }}>
             {current.icon}
@@ -78,7 +92,6 @@ function Tutorial({ onComplete }) {
           <p>{current.desc}</p>
         </div>
 
-        {/* Navigation */}
         <div className="tutorial-nav">
           {step > 0 && (
             <button className="tutorial-btn secondary" onClick={() => setStep(step - 1)}>

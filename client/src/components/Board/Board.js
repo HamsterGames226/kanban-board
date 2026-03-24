@@ -12,7 +12,9 @@ import CardModal from './CardModal';
 import InviteModal from './InviteModal';
 import MembersBar from './MembersBar';
 import BoardSettingsModal from './BoardSettingsModal';
-import { FiPlus, FiUserPlus, FiUsers, FiSettings, FiEyeOff } from 'react-icons/fi';
+import CalendarView from './CalendarView';
+import GraphView from './GraphView';
+import { FiPlus, FiUserPlus, FiUsers, FiSettings, FiEyeOff, FiColumns, FiCalendar, FiShare2 } from 'react-icons/fi';
 import './Board.css';
 
 function Board() {
@@ -32,6 +34,7 @@ function Board() {
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [addingColumn, setAddingColumn] = useState(false);
   const [quickAddColumnIndex, setQuickAddColumnIndex] = useState(null);
+  const [viewMode, setViewMode] = useState('kanban');
 
   const [showDescPreview] = useState(() => {
     return localStorage.getItem('showDescPreview') !== 'false';
@@ -139,6 +142,17 @@ function Board() {
       if (showMembers) { setShowMembers(false); return; }
       if (addingColumn) { setAddingColumn(false); return; }
       if (quickAddColumnIndex !== null) { setQuickAddColumnIndex(null); return; }
+    }));
+
+    // 1, 2, 3 — переключение видов
+    unsubs.push(registerHotkey('1', () => {
+      if (!selectedCard && !showInvite && !showSettings) setViewMode('kanban');
+    }));
+    unsubs.push(registerHotkey('2', () => {
+      if (!selectedCard && !showInvite && !showSettings) setViewMode('calendar');
+    }));
+    unsubs.push(registerHotkey('3', () => {
+      if (!selectedCard && !showInvite && !showSettings) setViewMode('graph');
     }));
 
     return () => {
@@ -294,6 +308,21 @@ function Board() {
             )}
           </div>
 
+          <div className="view-switcher-premium">
+            <button className={`view-btn ${viewMode === 'kanban' ? 'active' : ''}`} 
+              onClick={() => setViewMode('kanban')} title={t('board.kanban')}>
+              <FiColumns />
+            </button>
+            <button className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`}
+              onClick={() => setViewMode('calendar')} title={t('board.calendar')}>
+              <FiCalendar />
+            </button>
+            <button className={`view-btn ${viewMode === 'graph' ? 'active' : ''}`}
+              onClick={() => setViewMode('graph')} title={t('board.graph')}>
+              <FiShare2 />
+            </button>
+          </div>
+
           <button className="board-action-btn" onClick={() => setShowMembers(!showMembers)}
             title="M">
             <FiUsers /><span>{t('board.members')}</span>
@@ -315,64 +344,85 @@ function Board() {
 
       {/* ===== КОНТЕНТ ===== */}
       <div className="board-container" style={getBoardBackground()}>
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="board" direction="horizontal" type="column">
-            {(provided) => (
-              <div className="board-columns" ref={provided.innerRef} {...provided.droppableProps}>
-                {board.columns.map((column, index) => (
-                  <Draggable key={column._id} draggableId={column._id} index={index}
-                    isDragDisabled={isViewer()}>
-                    {(provided, snapshot) => (
-                      <div ref={provided.innerRef} {...provided.draggableProps}
-                        className={`column-wrapper ${snapshot.isDragging ? 'dragging' : ''}`}>
-                        <ColumnComponent
-                          column={column}
-                          boardId={board._id}
-                          dragHandleProps={provided.dragHandleProps}
-                          onCardClick={setSelectedCard}
-                          onUpdate={fetchBoard}
-                          members={board.members}
-                          userRole={getUserRole()}
-                          allColumns={board.columns}
-                          showDescPreview={showDescPreview}
-                          savedLabels={board.savedLabels}
-                          forceAddCard={quickAddColumnIndex === index}
-                          onCancelQuickAdd={() => setQuickAddColumnIndex(null)}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-
-                {canEdit() && (
-                  <div className="add-column-wrapper">
-                    {addingColumn ? (
-                      <div className="add-column-form">
-                        <input type="text" value={newColumnTitle}
-                          onChange={(e) => setNewColumnTitle(e.target.value)}
-                          placeholder={t('board.columnTitle')} autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') addColumn();
-                            if (e.key === 'Escape') setAddingColumn(false);
-                          }}
-                        />
-                        <div className="add-column-actions">
-                          <button className="btn-primary btn-sm" onClick={addColumn}>{t('common.add')}</button>
-                          <button className="btn-ghost btn-sm" onClick={() => setAddingColumn(false)}>✕</button>
+        {viewMode === 'calendar' ? (
+          <CalendarView 
+            columns={board.columns} 
+            onCardClick={setSelectedCard}
+            savedLabels={board.savedLabels}
+            boardId={board._id}
+            members={board.members}
+            userRole={getUserRole()}
+            onUpdate={fetchBoard}
+          />
+        ) : viewMode === 'graph' ? (
+          <GraphView 
+            board={board} 
+            onCardClick={setSelectedCard}
+            boardId={board._id}
+            members={board.members}
+            userRole={getUserRole()}
+            onUpdate={fetchBoard}
+          />
+        ) : (
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="board" direction="horizontal" type="column">
+              {(provided) => (
+                <div className="board-columns" ref={provided.innerRef} {...provided.droppableProps}>
+                  {board.columns.map((column, index) => (
+                    <Draggable key={column._id} draggableId={column._id} index={index}
+                      isDragDisabled={isViewer()}>
+                      {(provided, snapshot) => (
+                        <div ref={provided.innerRef} {...provided.draggableProps}
+                          className={`column-wrapper ${snapshot.isDragging ? 'dragging' : ''}`}>
+                          <ColumnComponent
+                            column={column}
+                            boardId={board._id}
+                            dragHandleProps={provided.dragHandleProps}
+                            onCardClick={setSelectedCard}
+                            onUpdate={fetchBoard}
+                            members={board.members}
+                            userRole={getUserRole()}
+                            allColumns={board.columns}
+                            showDescPreview={showDescPreview}
+                            savedLabels={board.savedLabels}
+                            forceAddCard={quickAddColumnIndex === index}
+                            onCancelQuickAdd={() => setQuickAddColumnIndex(null)}
+                          />
                         </div>
-                      </div>
-                    ) : (
-                      <button className="add-column-btn" onClick={() => setAddingColumn(true)}>
-                        <FiPlus /><span>{t('board.addColumn')}</span>
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+
+                  {canEdit() && (
+                    <div className="add-column-wrapper">
+                      {addingColumn ? (
+                        <div className="add-column-form">
+                          <input type="text" value={newColumnTitle}
+                            onChange={(e) => setNewColumnTitle(e.target.value)}
+                            placeholder={t('board.columnTitle')} autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') addColumn();
+                              if (e.key === 'Escape') setAddingColumn(false);
+                            }}
+                          />
+                          <div className="add-column-actions">
+                            <button className="btn-primary btn-sm" onClick={addColumn}>{t('common.add')}</button>
+                            <button className="btn-ghost btn-sm" onClick={() => setAddingColumn(false)}>✕</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button className="add-column-btn" onClick={() => setAddingColumn(true)}>
+                          <FiPlus /><span>{t('board.addColumn')}</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        )}
 
         {showMembers && (
           <MembersBar board={board} currentUser={user}

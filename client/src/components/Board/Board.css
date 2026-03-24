@@ -3703,4 +3703,47 @@
   background: rgba(255, 255, 255, 0.08);
   border-color: var(--brand-500);
   color: var(--text-normal);
+}
+
+/* View Switcher */
+.view-switcher-premium {
+  display: flex;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-right: 12px;
+}
+
+.view-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 36px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 16px;
+}
+
+.view-btn:hover {
+  color: var(--text-normal);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.view-btn.active {
+  background: var(--brand-500);
+  color: white;
+  box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+}
+
+.view-btn span {
+  font-size: 13px;
+  font-weight: 600;
+  margin-left: 8px;
+  display: none; 
 }

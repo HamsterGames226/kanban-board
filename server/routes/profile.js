@@ -3,26 +3,48 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-// Убедимся, что папка uploads/avatars существует
-const avatarsDir = path.join(__dirname, '../uploads/avatars');
-if (!fs.existsSync(avatarsDir)) {
-  fs.mkdirSync(avatarsDir, { recursive: true });
+// Настройка Cloudinary (если переменные заданы в Render)
+if (process.env.CLOUDINARY_NAME) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
 }
 
-// Настройка локального хранилища для Multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, avatarsDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+// Выбор хранилища: Cloudinary для продакшена (Render), Локальное для разработки
+let storage;
+if (process.env.CLOUDINARY_NAME) {
+  storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: 'avatars',
+      allowed_formats: ['jpg', 'png', 'jpeg', 'gif'],
+    },
+  });
+} else {
+  // Убедимся, что папка uploads/avatars существует
+  const avatarsDir = path.join(__dirname, '../uploads/avatars');
+  if (!fs.existsSync(avatarsDir)) {
+    fs.mkdirSync(avatarsDir, { recursive: true });
   }
-});
+  
+  storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, avatarsDir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+}
 
 const upload = multer({
   storage,
@@ -151,7 +173,7 @@ router.put('/password', auth, async (req, res) => {
   }
 });
 
-// Upload avatar locally
+// Upload avatar (Cloudinary support for Render)
 router.post('/avatar', auth, upload.single('avatar'), async (req, res) => {
   try {
     if (!req.file) {
@@ -160,7 +182,7 @@ router.post('/avatar', auth, upload.single('avatar'), async (req, res) => {
 
     const user = await User.findById(req.user._id);
     
-    // Удаляем старую локальную аватарку, если она есть
+    // Удаляем старую локальную аватарку, если она есть (только локальную!)
     if (user.customAvatar && user.customAvatar.startsWith('/uploads/avatars/')) {
       const oldPath = path.join(__dirname, '..', user.customAvatar);
       if (fs.existsSync(oldPath)) {
@@ -168,8 +190,9 @@ router.post('/avatar', auth, upload.single('avatar'), async (req, res) => {
       }
     }
 
-    // Сохраняем относительный путь
-    user.customAvatar = `/uploads/avatars/${req.file.filename}`; 
+    // Сохраняем URL из Cloudinary или путь локального файла
+    // multer-storage-cloudinary записывает ссылку в req.file.path
+    user.customAvatar = req.file.path.startsWith('http') ? req.file.path : `/uploads/avatars/${req.file.filename}`;
     await user.save();
 
     const updatedUser = await User.findById(user._id).select('-password');
