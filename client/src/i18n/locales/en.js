@@ -157,6 +157,8 @@ const en = {
     minutesAgo: '{count}m ago',
     hoursAgo: '{count}h ago',
 
+    quickLabels: 'Quick labels',
+
     priorities: {
       none: 'None',
       low: '🔵 Low',
@@ -334,6 +336,16 @@ const en = {
     collapse: 'Collapse',
     duplicate: 'Duplicate',
     delete: 'Delete column',
+  },
+
+  boardSettings: {
+    general: 'General',
+    background: 'Background',
+    labels: 'Labels',
+    labelsHint: 'Create labels for the board. Members can quickly add them to cards in one click.',
+    noLabels: 'No labels yet',
+    addLabel: 'Add label',
+    labelTextPlaceholder: 'Label name...',
   },
 
   markdown: { write: 'Write', preview: 'Preview' },

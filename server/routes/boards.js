@@ -341,4 +341,91 @@ router.post('/:id/regenerate-invite', auth, async (req, res) => {
   }
 });
 
+// Get saved labels
+router.get('/:id/labels', auth, async (req, res) => {
+  try {
+    const board = await Board.findById(req.params.id);
+    if (!board) return res.status(404).json({ message: 'Доска не найдена' });
+
+    const isMember = board.members.some(m => m.user.toString() === req.user._id.toString());
+    if (!isMember) return res.status(403).json({ message: 'Нет доступа' });
+
+    res.json(board.savedLabels || []);
+  } catch (error) {
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
+// Add saved label
+router.post('/:id/labels', auth, async (req, res) => {
+  try {
+    const { text, color } = req.body;
+    const board = await Board.findById(req.params.id);
+    if (!board) return res.status(404).json({ message: 'Доска не найдена' });
+
+    const member = board.members.find(m => m.user.toString() === req.user._id.toString());
+    if (!member || member.role === 'viewer') {
+      return res.status(403).json({ message: 'Недостаточно прав' });
+    }
+
+    // Не дублировать
+    const exists = board.savedLabels.some(l => l.text === text && l.color === color);
+    if (!exists) {
+      board.savedLabels.push({ text, color });
+      await board.save();
+    }
+
+    global.io.in(`board:${board._id}`).emit('board:refresh', { boardId: board._id });
+    res.json(board.savedLabels);
+  } catch (error) {
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
+// Delete saved label
+router.delete('/:id/labels/:labelIndex', auth, async (req, res) => {
+  try {
+    const board = await Board.findById(req.params.id);
+    if (!board) return res.status(404).json({ message: 'Доска не найдена' });
+
+    const member = board.members.find(m => m.user.toString() === req.user._id.toString());
+    if (!member || member.role === 'viewer') {
+      return res.status(403).json({ message: 'Недостаточно прав' });
+    }
+
+    const idx = parseInt(req.params.labelIndex);
+    if (idx >= 0 && idx < board.savedLabels.length) {
+      board.savedLabels.splice(idx, 1);
+      await board.save();
+    }
+
+    global.io.in(`board:${board._id}`).emit('board:refresh', { boardId: board._id });
+    res.json(board.savedLabels);
+  } catch (error) {
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
+// Update all saved labels at once
+router.put('/:id/labels', auth, async (req, res) => {
+  try {
+    const { labels } = req.body;
+    const board = await Board.findById(req.params.id);
+    if (!board) return res.status(404).json({ message: 'Доска не найдена' });
+
+    const member = board.members.find(m => m.user.toString() === req.user._id.toString());
+    if (!member || !['owner', 'admin'].includes(member.role)) {
+      return res.status(403).json({ message: 'Недостаточно прав' });
+    }
+
+    board.savedLabels = labels;
+    await board.save();
+
+    global.io.in(`board:${board._id}`).emit('board:refresh', { boardId: board._id });
+    res.json(board.savedLabels);
+  } catch (error) {
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
 module.exports = router;

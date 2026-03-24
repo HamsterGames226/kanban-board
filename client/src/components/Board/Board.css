@@ -2065,19 +2065,39 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 8px 8px;
-  gap: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .add-card-priority-picker {
   display: flex;
-  gap: 3px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.add-card-buttons {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.add-card-buttons .btn-primary {
+  padding: 5px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.add-card-buttons .btn-ghost {
+  padding: 5px 8px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .priority-dot-btn {
   background: none;
   border: 2px solid transparent;
   border-radius: 50%;
-  padding: 2px;
+  padding: 1px;
   cursor: pointer;
   transition: all 0.12s ease;
   display: flex;
@@ -2085,18 +2105,9 @@
   justify-content: center;
 }
 
-.priority-dot-btn:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.priority-dot-btn.active {
-  border-color: white;
-  transform: scale(1.15);
-}
-
 .priority-dot-color {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
 }
 
@@ -2200,4 +2211,235 @@
 .add-column-actions {
   display: flex;
   gap: 8px;
+}
+/* Settings tabs */
+.settings-tabs {
+  display: flex;
+  padding: 0 24px;
+  gap: 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.settings-tab {
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings-tab:hover {
+  color: var(--text-normal);
+}
+
+.settings-tab.active {
+  color: var(--header-primary);
+  border-bottom-color: var(--brand-500);
+}
+
+.settings-tab-badge {
+  background: var(--bg-tertiary);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.settings-tab.active .settings-tab-badge {
+  background: var(--brand-500);
+  color: white;
+}
+
+.settings-body {
+  padding: 16px 24px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.settings-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+/* Saved labels */
+.saved-labels-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.saved-labels-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 20px 0;
+}
+
+.saved-label-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.12s ease;
+}
+
+.saved-label-item:hover {
+  background: var(--bg-modifier-hover);
+}
+
+.saved-label-preview {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.saved-label-delete {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  opacity: 0;
+  transition: all 0.12s ease;
+}
+
+.saved-label-item:hover .saved-label-delete {
+  opacity: 1;
+}
+
+.saved-label-delete:hover {
+  color: var(--red-400);
+  background: rgba(237, 66, 69, 0.1);
+}
+
+/* Add saved label */
+.add-saved-label-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px dashed var(--background-accent);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.add-saved-label-btn:hover {
+  border-color: var(--brand-500);
+  color: var(--brand-500);
+  background: rgba(88, 101, 242, 0.05);
+}
+
+.add-saved-label-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+}
+
+.add-label-color-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.add-label-color-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.12s ease;
+}
+
+.add-label-color-dot:hover {
+  transform: scale(1.15);
+}
+
+.add-label-color-dot.active {
+  border-color: white;
+  box-shadow: 0 0 0 2px var(--brand-500);
+}
+
+.add-label-color-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Quick labels */
+.add-label-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quick-labels {
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+}
+
+.quick-labels-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  letter-spacing: 0.03em;
+}
+
+.quick-labels-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.quick-label-btn {
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: none;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.quick-label-btn:hover:not(.added) {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.quick-label-btn.added {
+  opacity: 0.5;
+  cursor: default;
 }

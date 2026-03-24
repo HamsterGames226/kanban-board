@@ -7,7 +7,7 @@ import MarkdownEditor from './MarkdownEditor';
 import MarkdownRenderer from './MarkdownRenderer';
 import { renderAvatar } from '../../utils/avatar';
 
-function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
+function CardModal({ card, boardId, members, userRole, savedLabels = [], onClose, onUpdate }) {
   const { t } = useTranslation();
   const { user } = useAuth();
 
@@ -111,7 +111,7 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
     catch (err) { console.error(err); }
   };
 
-  // ===== Комментарии (доступны всем) =====
+  // ===== Комментарии =====
   const addComment = async () => {
     if (!newComment.trim()) return;
     try {
@@ -149,7 +149,6 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
     catch (err) { console.error(err); }
   };
 
-  // ===== Удаление =====
   const deleteCard = async () => {
     if (!canEdit) return;
     if (!window.confirm(t('card.deleteCardConfirm'))) return;
@@ -175,8 +174,6 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
   return (
     <div className="card-modal-overlay" onClick={onClose}>
       <div className="card-modal" onClick={e => e.stopPropagation()}>
-
-        {/* ===== ЗАГОЛОВОК ===== */}
         <div className="card-modal-header">
           <div className="card-title-section">
             {editingTitle && canEdit ? (
@@ -211,7 +208,6 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
           <button className="card-modal-close" onClick={onClose}><FiX /></button>
         </div>
 
-        {/* Баннер наблюдателя */}
         {isViewer && (
           <div className="viewer-banner" style={{ margin: '0 24px', borderRadius: 8 }}>
             <FiEyeOff size={14} />
@@ -219,11 +215,8 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
           </div>
         )}
 
-        {/* ===== ТЕЛО ===== */}
         <div className="card-modal-body">
           <div className="card-modal-main">
-
-            {/* Метки */}
             {labels.length > 0 && (
               <div className="modal-section">
                 <span className="modal-section-title">{t('card.labels')}</span>
@@ -240,7 +233,6 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
               </div>
             )}
 
-            {/* Исполнители */}
             {assignees.length > 0 && (
               <div className="modal-section">
                 <span className="modal-section-title">{t('card.assignees')}</span>
@@ -260,7 +252,6 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
               </div>
             )}
 
-            {/* Описание */}
             <div className="modal-section">
               <span className="modal-section-title">{t('card.description')}</span>
               {canEdit ? (
@@ -282,7 +273,6 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
               )}
             </div>
 
-            {/* Чеклист */}
             {checklist.length > 0 && (
               <div className="modal-section">
                 <span className="modal-section-title">
@@ -332,7 +322,6 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
               </div>
             )}
 
-            {/* Комментарии */}
             <div className="modal-section comments-section">
               <span className="modal-section-title">
                 <FiMessageSquare style={{ marginRight: 6 }} />
@@ -366,7 +355,6 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
             </div>
           </div>
 
-          {/* ===== SIDEBAR ===== */}
           <div className="card-modal-sidebar">
             {canEdit && (
               <>
@@ -393,19 +381,50 @@ function CardModal({ card, boardId, members, userRole, onClose, onUpdate }) {
                 </button>
 
                 {showAddLabel && (
-                  <div className="add-label-form">
-                    <input type="text" value={newLabelText}
-                      onChange={e => setNewLabelText(e.target.value)}
-                      placeholder={t('card.labelText')}
-                      onKeyDown={e => { if (e.key === 'Enter') addLabel(); }} />
-                    <div className="color-options">
-                      {labelColors.map(c => (
-                        <div key={c} className={`color-option ${newLabelColor === c ? 'selected' : ''}`}
-                          style={{ background: c }} onClick={() => setNewLabelColor(c)} />
-                      ))}
+                  <div className="add-label-section">
+                    {/* Быстрые теги из доски */}
+                    {savedLabels.length > 0 && (
+                      <div className="quick-labels">
+                        <div className="quick-labels-title">{t('card.quickLabels')}</div>
+                        <div className="quick-labels-list">
+                          {savedLabels.map((sl, i) => {
+                            const alreadyAdded = labels.some(l => l.text === sl.text && l.color === sl.color);
+                            return (
+                              <button
+                                key={i}
+                                className={`quick-label-btn ${alreadyAdded ? 'added' : ''}`}
+                                style={{ background: sl.color }}
+                                onClick={async () => {
+                                  if (alreadyAdded) return;
+                                  const nl = [...labels, { text: sl.text, color: sl.color }];
+                                  setLabels(nl);
+                                  try { await api.put(`/cards/${card._id}`, { labels: nl }); }
+                                  catch (err) { console.error(err); }
+                                }}
+                                disabled={alreadyAdded}
+                              >
+                                {alreadyAdded ? '✓ ' : ''}{sl.text}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {/* Кастомный тег */}
+                    <div className="add-label-form">
+                      <input type="text" value={newLabelText}
+                        onChange={e => setNewLabelText(e.target.value)}
+                        placeholder={t('card.labelText')}
+                        onKeyDown={e => { if (e.key === 'Enter') addLabel(); }} />
+                      <div className="color-options">
+                        {labelColors.map(c => (
+                          <div key={c} className={`color-option ${newLabelColor === c ? 'selected' : ''}`}
+                            style={{ background: c }} onClick={() => setNewLabelColor(c)} />
+                        ))}
+                      </div>
+                      <button className="btn-primary btn-sm" onClick={addLabel}
+                        style={{ width: '100%' }}>{t('common.add')}</button>
                     </div>
-                    <button className="btn-primary btn-sm" onClick={addLabel}
-                      style={{ width: '100%' }}>{t('common.add')}</button>
                   </div>
                 )}
 

@@ -163,6 +163,8 @@ const ru = {
     minutesAgo: '{count}м назад',
     hoursAgo: '{count}ч назад',
 
+    quickLabels: 'Быстрые теги',
+
     // Приоритеты
     priorities: {
       none: 'Без приоритета',
@@ -349,6 +351,17 @@ const ru = {
     duplicate: 'Дублировать',
     delete: 'Удалить столбец',
   },
+
+  boardSettings: {
+    general: 'Основное',
+    background: 'Фон',
+    labels: 'Теги',
+    labelsHint: 'Создайте теги для доски. Участники смогут быстро добавлять их на карточки в один клик.',
+    noLabels: 'Тегов пока нет',
+    addLabel: 'Добавить тег',
+    labelTextPlaceholder: 'Название тега...',
+  },
+
 
   markdown: { write: 'Редактор', preview: 'Просмотр' },
   toggleDescPreview: 'Показать/скрыть описание карточек',
