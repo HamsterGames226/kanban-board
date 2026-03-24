@@ -37,7 +37,11 @@ function CardModal({ card, boardId, members, userRole, savedLabels = [], onClose
   const [showAddCheck, setShowAddCheck] = useState(false);
   const [activeSection, setActiveSection] = useState(null); // 'labels' | 'assignees' | 'checklist'
 
-  const labelColors = ['#5865f2', '#57f287', '#fee75c', '#eb459e', '#ed4245', '#f0b232', '#00a8fc'];
+  const labelColors = [
+    '#5865f2', '#7c8af8', '#00a8fc', '#57f287', '#23a559',
+    '#fee75c', '#f0b232', '#eb459e', '#ed4245', '#e74c8a',
+    '#9b59b6', '#4e5058'
+  ];
   const descTimeout = useRef(null);
 
   // ===== Сохранение =====
@@ -171,6 +175,15 @@ function CardModal({ card, boardId, members, userRole, savedLabels = [], onClose
     <div className="card-modal-overlay" onClick={onClose}>
       <div className="card-modal-new" onClick={e => e.stopPropagation()}>
 
+        {/* Priority color strip */}
+        <div className="cm-priority-strip" style={{
+          background: priority === 'critical' ? 'linear-gradient(90deg, #ed4245, #ff6b6b)'
+            : priority === 'high' ? 'linear-gradient(90deg, #f0b232, #ffd06a)'
+            : priority === 'medium' ? 'linear-gradient(90deg, #fee75c, #fff1a0)'
+            : priority === 'low' ? 'linear-gradient(90deg, #5865f2, #7c8af8)'
+            : 'linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))'
+        }} />
+
         {/* ===== HEADER ===== */}
         <div className="cm-header">
           <div className="cm-header-left">
@@ -217,7 +230,7 @@ function CardModal({ card, boardId, members, userRole, savedLabels = [], onClose
             {/* Текущие метки */}
             {labels.length > 0 && (
               <div className="cm-section">
-                <div className="cm-section-title">{t('card.labels')}</div>
+                <div className="cm-section-title"><FiTag size={13} />{t('card.labels')}</div>
                 <div className="cm-labels-row">
                   {labels.map((label, i) => (
                     <div key={i} className="cm-label" style={{ background: label.color }}>
@@ -358,7 +371,7 @@ function CardModal({ card, boardId, members, userRole, savedLabels = [], onClose
 
                 {/* Теги */}
                 <div className="cm-sb-section">
-                  <div className="cm-sb-title">{t('card.labels')}</div>
+                  <div className="cm-sb-title"><FiTag size={11} style={{marginRight: 4}} />{t('card.labels')}</div>
 
                   {/* Быстрые теги доски */}
                   {savedLabels.length > 0 && (
@@ -377,12 +390,32 @@ function CardModal({ card, boardId, members, userRole, savedLabels = [], onClose
                     </div>
                   )}
 
+                  {/* Текущие метки на карточке */}
+                  {labels.length > 0 && (
+                    <div className="cm-sb-labels-current">
+                      {labels.map((label, i) => (
+                        <div key={i} className="cm-sb-label-chip" style={{ background: label.color }}>
+                          <span>{label.text}</span>
+                          <button className="cm-sb-label-remove" onClick={() => removeLabel(i)}>×</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Новый тег */}
                   {showLabelPanel ? (
                     <div className="cm-add-label-form">
+                      {/* Live preview */}
+                      {newLabelText.trim() && (
+                        <div className="cm-label-preview-row">
+                          <div className="cm-label-preview-chip" style={{ background: newLabelColor }}>
+                            {newLabelText}
+                          </div>
+                        </div>
+                      )}
                       <input type="text" value={newLabelText} onChange={e => setNewLabelText(e.target.value)}
                         placeholder={t('card.labelText')} autoFocus
-                        onKeyDown={e => { if (e.key === 'Enter') addCustomLabel(); }} />
+                        onKeyDown={e => { if (e.key === 'Enter') addCustomLabel(); if (e.key === 'Escape') setShowLabelPanel(false); }} />
                       <div className="cm-label-colors">
                         {labelColors.map(c => (
                           <div key={c} className={`cm-label-color ${newLabelColor === c ? 'active' : ''}`}
