@@ -82,19 +82,23 @@ function BoardSettingsModal({ board, onClose, onUpdate }) {
   };
 
   const addLabel = async () => {
-    if (!newLabelText.trim()) return;
-    try {
-      const res = await api.post(`/boards/${board._id}/labels`, {
-        text: newLabelText,
-        color: newLabelColor
-      });
-      setSavedLabels(res.data);
-      setNewLabelText('');
-      setShowAddLabel(false);
-    } catch (err) {
-      showMsg(err.response?.data?.message || t('common.error'));
-    }
-  };
+  if (!newLabelText.trim()) return;
+  console.log('Adding label:', newLabelText, newLabelColor);
+  try {
+    const res = await api.post(`/boards/${board._id}/labels`, {
+      text: newLabelText,
+      color: newLabelColor
+    });
+    console.log('Label response:', res.data);
+    setSavedLabels(res.data);
+    setNewLabelText('');
+    setShowAddLabel(false);
+    onUpdate(); // Обновить доску
+  } catch (err) {
+    console.error('Add label error:', err.response?.data || err);
+    showMsg(err.response?.data?.message || t('common.error'));
+  }
+};
 
   const removeLabel = async (index) => {
     try {

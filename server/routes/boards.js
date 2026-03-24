@@ -356,6 +356,8 @@ router.get('/:id/labels', auth, async (req, res) => {
   }
 });
 
+// ===== SAVED LABELS =====
+
 // Add saved label
 router.post('/:id/labels', auth, async (req, res) => {
   try {
@@ -368,16 +370,20 @@ router.post('/:id/labels', auth, async (req, res) => {
       return res.status(403).json({ message: 'Недостаточно прав' });
     }
 
-    // Не дублировать
+    if (!board.savedLabels) board.savedLabels = [];
+
     const exists = board.savedLabels.some(l => l.text === text && l.color === color);
     if (!exists) {
       board.savedLabels.push({ text, color });
       await board.save();
     }
 
+    console.log('Label added:', text, color, 'Total:', board.savedLabels.length);
+
     global.io.in(`board:${board._id}`).emit('board:refresh', { boardId: board._id });
     res.json(board.savedLabels);
   } catch (error) {
+    console.error('Add label error:', error);
     res.status(500).json({ message: 'Ошибка сервера' });
   }
 });
@@ -394,14 +400,15 @@ router.delete('/:id/labels/:labelIndex', auth, async (req, res) => {
     }
 
     const idx = parseInt(req.params.labelIndex);
-    if (idx >= 0 && idx < board.savedLabels.length) {
+    if (board.savedLabels && idx >= 0 && idx < board.savedLabels.length) {
       board.savedLabels.splice(idx, 1);
       await board.save();
     }
 
     global.io.in(`board:${board._id}`).emit('board:refresh', { boardId: board._id });
-    res.json(board.savedLabels);
+    res.json(board.savedLabels || []);
   } catch (error) {
+    console.error('Delete label error:', error);
     res.status(500).json({ message: 'Ошибка сервера' });
   }
 });
