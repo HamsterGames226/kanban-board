@@ -44,10 +44,7 @@ function Navbar() {
           ))}
         </div>
 
-        {/* Hotkeys help button */}
-        <button className="navbar-icon-btn" onClick={() => setShowHelp(true)} title={t('hotkeys.title')}>
-          <FiHelpCircle />
-        </button>
+
 
         <div className="user-menu" onClick={() => setShowDropdown(!showDropdown)}>
           {avatarUrl ? (

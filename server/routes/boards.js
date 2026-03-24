@@ -301,5 +301,80 @@ router.put('/:id/columns/reorder', auth, async (req, res) => {
     res.status(500).json({ message: 'Ошибка сервера' });
   }
 });
+// Add a new label to board
+router.post('/:id/labels', auth, async (req, res) => {
+  try {
+    const roleCheck = await checkRole(req.user._id, req.params.id, 'member');
+    if (!roleCheck.allowed) return res.status(403).json({ message: roleCheck.message });
+
+    const board = roleCheck.board;
+    const { text, color } = req.body;
+
+    if (!text || !color) return res.status(400).json({ message: 'Text and color are required' });
+
+    const newLabel = { text, color };
+    board.savedLabels.push(newLabel);
+    await board.save();
+    
+    // Mongoose adds the _id after saving. Get the newly pushed one.
+    const createdLabel = board.savedLabels[board.savedLabels.length - 1];
+
+    res.status(201).json({
+      savedLabels: board.savedLabels,
+      newLabel: createdLabel
+    });
+  } catch (error) {
+    console.error('Add label error:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
+// Update an existing label
+router.put('/:id/labels/:labelId', auth, async (req, res) => {
+  try {
+    const roleCheck = await checkRole(req.user._id, req.params.id, 'member');
+    if (!roleCheck.allowed) return res.status(403).json({ message: roleCheck.message });
+
+    const board = roleCheck.board;
+    const { text, color } = req.body;
+    
+    const label = board.savedLabels.id(req.params.labelId);
+    if (!label) return res.status(404).json({ message: 'Label not found' });
+
+    if (text !== undefined) label.text = text;
+    if (color !== undefined) label.color = color;
+    await board.save();
+
+    res.json({ savedLabels: board.savedLabels });
+  } catch (error) {
+    console.error('Update label error:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
+// Delete a label
+router.delete('/:id/labels/:labelId', auth, async (req, res) => {
+  try {
+    const roleCheck = await checkRole(req.user._id, req.params.id, 'member');
+    if (!roleCheck.allowed) return res.status(403).json({ message: roleCheck.message });
+
+    const board = roleCheck.board;
+    const labelId = req.params.labelId;
+
+    board.savedLabels = board.savedLabels.filter(l => l._id.toString() !== labelId);
+    await board.save();
+
+    // Cascade delete from cards
+    await Card.updateMany(
+      { board: board._id },
+      { $pull: { labels: labelId } }
+    );
+
+    res.json({ savedLabels: board.savedLabels });
+  } catch (error) {
+    console.error('Delete label error:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
 
 module.exports = router;

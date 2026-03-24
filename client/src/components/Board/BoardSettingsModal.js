@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../i18n';
 import api from '../../utils/api';
-import { FiX, FiSave, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FiX, FiSave, FiPlus, FiTrash2, FiEdit2 } from 'react-icons/fi';
 
 const BG_COLORS = [
   '#2f3136', '#1a1a2e', '#16213e', '#0f3460', '#1b1b2f',
@@ -53,6 +53,7 @@ function BoardSettingsModal({ board, onClose, onUpdate }) {
   const [newLabelText, setNewLabelText] = useState('');
   const [newLabelColor, setNewLabelColor] = useState('#5865f2');
   const [showAddLabel, setShowAddLabel] = useState(false);
+  const [activeSection, setActiveSection] = useState(null); // ID редактируемого тега
   const [activeTab, setActiveTab] = useState('general'); // 'general' | 'background' | 'labels'
 
   const showMsg = (text) => {
@@ -82,28 +83,38 @@ function BoardSettingsModal({ board, onClose, onUpdate }) {
   };
 
   const addLabel = async () => {
-  if (!newLabelText.trim()) return;
-  console.log('Adding label:', newLabelText, newLabelColor);
-  try {
-    const res = await api.post(`/boards/${board._id}/labels`, {
-      text: newLabelText,
-      color: newLabelColor
-    });
-    console.log('Label response:', res.data);
-    setSavedLabels(res.data);
-    setNewLabelText('');
-    setShowAddLabel(false);
-    onUpdate(); // Обновить доску
-  } catch (err) {
-    console.error('Add label error:', err.response?.data || err);
-    showMsg(err.response?.data?.message || t('common.error'));
-  }
-};
-
-  const removeLabel = async (index) => {
+    if (!newLabelText.trim()) return;
     try {
-      const res = await api.delete(`/boards/${board._id}/labels/${index}`);
-      setSavedLabels(res.data);
+      let res;
+      if (activeSection) {
+        // Edit existing
+        res = await api.put(`/boards/${board._id}/labels/${activeSection}`, {
+          text: newLabelText,
+          color: newLabelColor
+        });
+      } else {
+        // Create new
+        res = await api.post(`/boards/${board._id}/labels`, {
+          text: newLabelText,
+          color: newLabelColor
+        });
+      }
+      setSavedLabels(res.data.savedLabels);
+      setNewLabelText('');
+      setShowAddLabel(false);
+      setActiveSection(null);
+      onUpdate();
+    } catch (err) {
+      showMsg(err.response?.data?.message || t('common.error'));
+    }
+  };
+
+  const removeLabel = async (labelId) => {
+    if (!window.confirm(t('common.delete') + '?')) return;
+    try {
+      const res = await api.delete(`/boards/${board._id}/labels/${labelId}`);
+      setSavedLabels(res.data.savedLabels);
+      onUpdate();
     } catch (err) {
       showMsg(err.response?.data?.message || t('common.error'));
     }
@@ -227,13 +238,23 @@ function BoardSettingsModal({ board, onClose, onUpdate }) {
                   <div className="saved-labels-empty">{t('boardSettings.noLabels')}</div>
                 )}
                 {savedLabels.map((label, i) => (
-                  <div key={i} className="saved-label-item">
+                  <div key={label._id || i} className="saved-label-item">
                     <div className="saved-label-preview" style={{ background: label.color }}>
                       {label.text}
                     </div>
-                    <button className="saved-label-delete" onClick={() => removeLabel(i)}>
-                      <FiTrash2 size={13} />
-                    </button>
+                    <div className="saved-label-actions">
+                      <button className="saved-label-delete" onClick={() => removeLabel(label._id)} title={t('common.delete')}>
+                        <FiTrash2 size={13} />
+                      </button>
+                      <button className="saved-label-edit" onClick={() => {
+                        setNewLabelText(label.text);
+                        setNewLabelColor(label.color);
+                        setActiveSection(label._id);
+                        setShowAddLabel(true);
+                      }} title={t('common.edit')}>
+                        <FiEdit2 size={13} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -250,7 +271,7 @@ function BoardSettingsModal({ board, onClose, onUpdate }) {
                     autoFocus
                     onKeyDown={e => {
                       if (e.key === 'Enter') addLabel();
-                      if (e.key === 'Escape') setShowAddLabel(false);
+                      if (e.key === 'Escape') { setShowAddLabel(false); setActiveSection(null); setNewLabelText(''); }
                     }}
                   />
                   <div className="add-label-color-row">
@@ -270,15 +291,15 @@ function BoardSettingsModal({ board, onClose, onUpdate }) {
                   </div>
                   <div className="add-card-buttons">
                     <button className="btn-primary btn-sm" onClick={addLabel} disabled={!newLabelText.trim()}>
-                      {t('common.add')}
+                      {activeSection ? t('common.save') : t('common.add')}
                     </button>
-                    <button className="btn-ghost btn-sm" onClick={() => setShowAddLabel(false)}>
+                    <button className="btn-ghost btn-sm" onClick={() => { setShowAddLabel(false); setActiveSection(null); setNewLabelText(''); }}>
                       {t('common.cancel')}
                     </button>
                   </div>
                 </div>
               ) : (
-                <button className="add-saved-label-btn" onClick={() => setShowAddLabel(true)}>
+                <button className="add-saved-label-btn" onClick={() => { setShowAddLabel(true); setActiveSection(null); setNewLabelText(''); }}>
                   <FiPlus /> {t('boardSettings.addLabel')}
                 </button>
               )}

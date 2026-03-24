@@ -44,6 +44,18 @@ function CardModal({ card, boardId, members, userRole, savedLabels = [], onClose
   ];
   const descTimeout = useRef(null);
 
+  React.useEffect(() => {
+    setLabels(card.labels || []);
+  }, [card.labels]);
+
+  React.useEffect(() => {
+    setChecklist(card.checklist || []);
+  }, [card.checklist]);
+
+  React.useEffect(() => {
+    setComments(card.comments || []);
+  }, [card.comments]);
+
   // ===== Сохранение =====
   const saveTitle = async () => {
     if (!title.trim() || !canEdit) return;
@@ -75,36 +87,57 @@ function CardModal({ card, boardId, members, userRole, savedLabels = [], onClose
     catch (err) { console.error(err); }
   };
 
-  // ===== Теги =====
-  const toggleQuickLabel = async (label) => {
+  // ===== Теги (Labels) =====
+  const toggleQuickLabel = async (labelId) => {
     if (!canEdit) return;
-    const isAdded = labels.some(l => l.text === label.text && l.color === label.color);
+    const isAdded = labels.includes(labelId);
     let nl;
     if (isAdded) {
-      nl = labels.filter(l => !(l.text === label.text && l.color === label.color));
+      nl = labels.filter(id => id !== labelId);
     } else {
-      nl = [...labels, { text: label.text, color: label.color }];
+      nl = [...labels, labelId];
     }
     setLabels(nl);
     try { await api.put(`/cards/${card._id}`, { labels: nl }); }
     catch (err) { console.error(err); }
   };
 
-  const addCustomLabel = async () => {
-    if (!newLabelText.trim() || !canEdit) return;
-    const nl = [...labels, { text: newLabelText, color: newLabelColor }];
-    setLabels(nl);
-    setNewLabelText('');
-    try { await api.put(`/cards/${card._id}`, { labels: nl }); }
-    catch (err) { console.error(err); }
+  const addOrUpdateBoardLabel = async (labelData) => {
+    if (!labelData.text.trim() || !canEdit) return;
+    try {
+      let res;
+      if (labelData._id) {
+        // Update existing label
+        res = await api.put(`/boards/${boardId}/labels/${labelData._id}`, {
+          text: labelData.text,
+          color: labelData.color
+        });
+        onUpdate();
+      } else {
+        // Create new label
+        res = await api.post(`/boards/${boardId}/labels`, {
+          text: labelData.text,
+          color: labelData.color
+        });
+        
+        const { newLabel } = res.data;
+        if (newLabel) {
+           // Auto-assign new label to card
+           const nl = [...labels, newLabel._id];
+           setLabels(nl);
+           await api.put(`/cards/${card._id}`, { labels: nl });
+        }
+        onUpdate();
+      }
+    } catch (err) { console.error(err); }
   };
 
-  const removeLabel = async (i) => {
+  const deleteBoardLabel = async (labelId) => {
     if (!canEdit) return;
-    const nl = labels.filter((_, idx) => idx !== i);
-    setLabels(nl);
-    try { await api.put(`/cards/${card._id}`, { labels: nl }); }
-    catch (err) { console.error(err); }
+    try {
+      await api.delete(`/boards/${boardId}/labels/${labelId}`);
+      onUpdate();
+    } catch (err) { console.error(err); }
   };
 
   // ===== Исполнители =====
@@ -236,12 +269,16 @@ function CardModal({ card, boardId, members, userRole, savedLabels = [], onClose
               <div className="cm-section">
                 <div className="cm-section-title"><FiTag size={13} />{t('card.labels')}</div>
                 <div className="cm-labels-row">
-                  {labels.map((label, i) => (
-                    <div key={i} className="cm-label" style={{ background: label.color }}>
-                      <span>{label.text}</span>
-                      {canEdit && <button className="cm-label-x" onClick={() => removeLabel(i)}>×</button>}
-                    </div>
-                  ))}
+                  {labels.map((labelId, i) => {
+                    const label = savedLabels.find(l => l._id === labelId);
+                    if (!label) return null;
+                    return (
+                      <div key={i} className="cm-label" style={{ background: label.color }}>
+                        <span>{label.text}</span>
+                        {canEdit && <button className="cm-label-x" onClick={() => toggleQuickLabel(labelId)}>×</button>}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -377,64 +414,97 @@ function CardModal({ card, boardId, members, userRole, savedLabels = [], onClose
                 <div className="cm-sb-section">
                   <div className="cm-sb-title"><FiTag size={11} style={{marginRight: 4}} />{t('card.labels')}</div>
 
-                  {/* Быстрые теги доски */}
-                  {savedLabels.length > 0 && (
-                    <div className="cm-quick-labels">
-                      {savedLabels.map((sl, i) => {
-                        const added = labels.some(l => l.text === sl.text && l.color === sl.color);
-                        return (
-                          <button key={i} className={`cm-quick-label ${added ? 'added' : ''}`}
-                            style={{ background: sl.color }}
-                            onClick={() => toggleQuickLabel(sl)}>
-                            {added && <FiCheck size={10} />}
-                            {sl.text}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Текущие метки на карточке */}
-                  {labels.length > 0 && (
-                    <div className="cm-sb-labels-current">
-                      {labels.map((label, i) => (
-                        <div key={i} className="cm-sb-label-chip" style={{ background: label.color }}>
-                          <span>{label.text}</span>
-                          <button className="cm-sb-label-remove" onClick={() => removeLabel(i)}>×</button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Новый тег */}
-                  {showLabelPanel ? (
-                    <div className="cm-add-label-form">
-                      {/* Live preview */}
-                      {newLabelText.trim() && (
-                        <div className="cm-label-preview-row">
-                          <div className="cm-label-preview-chip" style={{ background: newLabelColor }}>
-                            {newLabelText}
-                          </div>
-                        </div>
-                      )}
-                      <input type="text" value={newLabelText} onChange={e => setNewLabelText(e.target.value)}
-                        placeholder={t('card.labelText')} autoFocus
-                        onKeyDown={e => { if (e.key === 'Enter') addCustomLabel(); if (e.key === 'Escape') setShowLabelPanel(false); }} />
-                      <div className="cm-label-colors">
-                        {labelColors.map(c => (
-                          <div key={c} className={`cm-label-color ${newLabelColor === c ? 'active' : ''}`}
-                            style={{ background: c }} onClick={() => setNewLabelColor(c)} />
-                        ))}
+                  {/* Выбор из существующих или управление */}
+                    {/* Выбор из существующих — то, что просили "за 1 кнопку" */}
+                    {(savedLabels || []).length > 0 && (
+                      <div className="cm-quick-labels-grid">
+                        {savedLabels.map((sl) => {
+                          const added = (labels || []).includes(sl._id);
+                          return (
+                            <button key={sl._id}
+                              className={`cm-quick-label-btn ${added ? 'added' : ''}`}
+                              style={{ '--label-color': sl.color }}
+                              onClick={() => toggleQuickLabel(sl._id)}
+                              title={sl.text}>
+                              {added && <FiCheck size={10} className="cm-label-check-icon" />}
+                              <span className="cm-label-btn-text">{sl.text}</span>
+                              <div className="cm-label-btn-edit" onClick={(e) => {
+                                e.stopPropagation();
+                                setNewLabelText(sl.text);
+                                setNewLabelColor(sl.color);
+                                setActiveSection(sl._id);
+                                setShowLabelPanel(true);
+                              }}><FiEdit2 size={10} /></div>
+                            </button>
+                          );
+                        })}
                       </div>
-                      <div className="cm-add-label-actions">
-                        <button className="btn-primary btn-sm" onClick={addCustomLabel}
-                          disabled={!newLabelText.trim()}>{t('common.add')}</button>
-                        <button className="btn-ghost btn-sm" onClick={() => setShowLabelPanel(false)}>
-                          {t('common.cancel')}</button>
+                    )}
+
+                  {/* Добавление нового или редактирование */}
+                  {showLabelPanel ? (
+                    <div className="cm-add-label-premium">
+                      <div className="cm-label-preview-container">
+                        <div className="cm-label-preview-bubble" style={{ background: newLabelColor }}>
+                          {newLabelText || t('card.labelText')}
+                        </div>
+                      </div>
+                      
+                      <div className="cm-add-label-form-group">
+                         <input type="text" value={newLabelText} onChange={e => setNewLabelText(e.target.value)}
+                           placeholder={t('card.labelText')} autoFocus className="cm-label-input-field"
+                           onKeyDown={e => {
+                             if (e.key === 'Enter') {
+                               addOrUpdateBoardLabel({ _id: activeSection, text: newLabelText, color: newLabelColor });
+                               setShowLabelPanel(false);
+                               setNewLabelText('');
+                               setActiveSection(null);
+                             }
+                             if (e.key === 'Escape') { setShowLabelPanel(false); setActiveSection(null); setNewLabelText(''); }
+                           }} />
+                         
+                         <div className="cm-label-color-selector">
+                           {labelColors.map(c => (
+                             <div key={c} className={`cm-color-bubble ${newLabelColor === c ? 'active' : ''}`}
+                               style={{ background: c }} onClick={() => setNewLabelColor(c)} />
+                           ))}
+                         </div>
+
+                         <div className="cm-label-form-actions">
+                           <button className="btn-primary btn-sm cm-label-save-btn" onClick={() => {
+                              addOrUpdateBoardLabel({ _id: activeSection, text: newLabelText, color: newLabelColor });
+                              setShowLabelPanel(false);
+                              setNewLabelText('');
+                              setActiveSection(null);
+                           }}
+                             disabled={!newLabelText.trim()}>{activeSection ? t('common.save') : t('common.add')}</button>
+                           
+                           <button className="btn-ghost btn-sm" onClick={() => {
+                             setShowLabelPanel(false);
+                             setActiveSection(null);
+                             setNewLabelText('');
+                           }}>{t('common.cancel')}</button>
+
+                           {activeSection && (
+                             <button className="cm-label-delete-tiny" onClick={() => {
+                               if (window.confirm(t('common.delete') + '?')) {
+                                 deleteBoardLabel(activeSection);
+                                 setShowLabelPanel(false);
+                                 setActiveSection(null);
+                                 setNewLabelText('');
+                               }
+                             }}><FiTrash2 size={13} /></button>
+                           )}
+                         </div>
                       </div>
                     </div>
                   ) : (
-                    <button className="cm-sb-btn" onClick={() => setShowLabelPanel(true)}>
+                    <button className="cm-sb-btn cm-add-tag-btn" onClick={() => {
+                      setShowLabelPanel(true);
+                      setNewLabelText('');
+                      setNewLabelColor(labelColors[0]);
+                      setActiveSection(null);
+                    }}>
                       <FiPlus size={13} />{t('card.addLabel')}
                     </button>
                   )}

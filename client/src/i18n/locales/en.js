@@ -120,7 +120,7 @@ const en = {
     boardNotFound: 'Board not found',
     editBoard: 'Edit board',
 
-      cardTitlePlaceholder: 'Enter task name...',
+    cardTitlePlaceholder: 'Enter task name...',
 
     defaultColumns: {
       todo: 'To Do',
@@ -161,10 +161,10 @@ const en = {
 
     priorities: {
       none: 'None',
-      low: '🔵 Low',
-      medium: '🟡 Medium',
-      high: '🟠 High',
-      critical: '🔴 Critical',
+      low: 'Low',
+      medium: 'Medium',
+      high: 'High',
+      critical: 'Critical',
     },
     priorityLabels: {
       none: 'none',

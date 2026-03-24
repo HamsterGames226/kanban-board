@@ -26,8 +26,8 @@ const cardSchema = new mongoose.Schema({
     default: 'none'
   },
   labels: [{
-    text: String,
-    color: String
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Board'
   }],
   assignees: [{
     type: mongoose.Schema.Types.ObjectId,

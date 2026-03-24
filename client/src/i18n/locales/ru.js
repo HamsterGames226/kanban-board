@@ -168,10 +168,10 @@ const ru = {
     // Приоритеты
     priorities: {
       none: 'Без приоритета',
-      low: '🔵 Низкий',
-      medium: '🟡 Средний',
-      high: '🟠 Высокий',
-      critical: '🔴 Критический',
+      low: 'Низкий',
+      medium: 'Средний',
+      high: 'Высокий',
+      critical: 'Критический',
     },
     priorityLabels: {
       none: 'нет',

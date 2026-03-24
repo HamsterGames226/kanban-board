@@ -335,6 +335,7 @@ function Board() {
                           userRole={getUserRole()}
                           allColumns={board.columns}
                           showDescPreview={showDescPreview}
+                          savedLabels={board.savedLabels}
                           forceAddCard={quickAddColumnIndex === index}
                           onCancelQuickAdd={() => setQuickAddColumnIndex(null)}
                         />
@@ -380,8 +381,15 @@ function Board() {
       </div>
 
       {selectedCard && (
-        <CardModal card={selectedCard} boardId={board._id} members={board.members}
-          userRole={getUserRole()} onClose={() => setSelectedCard(null)} onUpdate={fetchBoard} />
+        <CardModal
+          card={selectedCard}
+          boardId={board._id}
+          members={board.members}
+          userRole={getUserRole()}
+          savedLabels={board.savedLabels}
+          onClose={() => setSelectedCard(null)}
+          onUpdate={fetchBoard}
+        />
       )}
       {showInvite && (
         <InviteModal board={board} onClose={() => setShowInvite(false)} onUpdate={fetchBoard} />

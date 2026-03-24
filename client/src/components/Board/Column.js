@@ -18,7 +18,7 @@ const COLUMN_COLORS = [
 
 function Column({
   column, boardId, dragHandleProps, onCardClick, onUpdate,
-  members, userRole, allColumns, showDescPreview,
+  members, userRole, allColumns, showDescPreview, savedLabels,
   forceAddCard, onCancelQuickAdd
 }) {
   const { t } = useTranslation();
@@ -311,11 +311,15 @@ function Column({
 
                         {cardData.labels?.length > 0 && (
                           <div className="card-labels">
-                            {cardData.labels.map((label, i) => (
-                              <span key={i} className="card-label" style={{ background: label.color }}>
-                                {label.text}
-                              </span>
-                            ))}
+                            {cardData.labels.map((labelId, i) => {
+                              const label = savedLabels?.find(l => l._id === labelId) || (labelId && labelId.color ? labelId : null);
+                              if (!label) return null;
+                              return (
+                                <span key={i} className="card-label" style={{ background: label.color }}>
+                                  {label.text}
+                                </span>
+                              );
+                            })}
                           </div>
                         )}
 
