@@ -4,6 +4,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import { useTranslation } from '../../i18n';
+import { useHotkeys } from '../Hotkeys/HotkeyProvider';
 import { renderAvatar } from '../../utils/avatar';
 import api from '../../utils/api';
 import ColumnComponent from './Column';
@@ -11,12 +12,6 @@ import CardModal from './CardModal';
 import InviteModal from './InviteModal';
 import MembersBar from './MembersBar';
 import BoardSettingsModal from './BoardSettingsModal';
-
-// Импорты из фото 2
-import { HotkeyProvider, useHotkeys } from '../Hotkeys/HotkeyProvider';
-import HotkeyHelp from '../Hotkeys/HotkeyHelp';
-
-// Добавлен FiEye из фото 1
 import { FiPlus, FiUserPlus, FiUsers, FiSettings, FiEyeOff } from 'react-icons/fi';
 import './Board.css';
 
@@ -26,6 +21,7 @@ function Board() {
   const { user } = useAuth();
   const { socket, connected } = useSocket();
   const { t } = useTranslation();
+  const { registerHotkey, unregisterAll } = useHotkeys();
 
   const [board, setBoard] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,43 +31,13 @@ function Board() {
   const [showSettings, setShowSettings] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [addingColumn, setAddingColumn] = useState(false);
+  const [quickAddColumnIndex, setQuickAddColumnIndex] = useState(null);
 
-  // Стейт для превью описания (из фото 2)
-  const [showDescPreview, setShowDescPreview] = useState(() => {
+  const [showDescPreview] = useState(() => {
     return localStorage.getItem('showDescPreview') !== 'false';
   });
 
-  const toggleDescPreview = () => {
-    const next = !showDescPreview;
-    setShowDescPreview(next);
-    localStorage.setItem('showDescPreview', String(next));
-  };
-
-  // Хуки горячих клавиш (из фото 2)
-  const { registerHotkey } = useHotkeys();
-
-  useEffect(() => {
-    const unsubs = [
-      registerHotkey('h', () => navigate('/dashboard')),
-      registerHotkey('p', () => navigate('/profile')),
-      registerHotkey('n', () => {
-        // Открыть форму добавления карточки в первом столбце
-        if (board?.columns?.[0] && canEdit()) {
-          setAddingColumn(false);
-          // Используем кастомный ивент
-          window.dispatchEvent(new CustomEvent('hotkey:newcard'));
-        }
-      }),
-      registerHotkey('shift+n', () => canEdit() && setAddingColumn(true)),
-      registerHotkey('m', () => setShowMembers(prev => !prev)),
-      registerHotkey('i', () => setShowInvite(true)),
-      registerHotkey('s', () => isAdminOrOwner() && setShowSettings(true)),
-    ];
-
-    return () => unsubs.forEach(fn => fn());
-  }, [board, registerHotkey, navigate]);
-
-  // ===== Роль текущего пользователя =====
+  // ===== Роли =====
   const getUserRole = useCallback(() => {
     const member = board?.members?.find(m => m.user?._id === user._id);
     return member?.role || 'viewer';
@@ -104,6 +70,86 @@ function Board() {
 
   useEffect(() => { fetchBoard(); }, [fetchBoard]);
 
+  // ===== Горячие клавиши =====
+  useEffect(() => {
+    const unsubs = [];
+
+    // H — на главную
+    unsubs.push(registerHotkey('h', () => {
+      if (!selectedCard && !showInvite && !showSettings) {
+        navigate('/dashboard');
+      }
+    }));
+
+    // P — профиль
+    unsubs.push(registerHotkey('p', () => {
+      if (!selectedCard && !showInvite && !showSettings) {
+        navigate('/profile');
+      }
+    }));
+
+    // N — новая карточка (в первом столбце)
+    unsubs.push(registerHotkey('n', () => {
+      if (!selectedCard && !showInvite && !showSettings && board?.columns?.length > 0) {
+        setQuickAddColumnIndex(0);
+      }
+    }));
+
+    // Shift+N — новый столбец
+    unsubs.push(registerHotkey('Shift+N', () => {
+      if (!selectedCard && !showInvite && !showSettings) {
+        setAddingColumn(true);
+        // Фокус на input через небольшую задержку
+        setTimeout(() => {
+          const input = document.querySelector('.add-column-form input');
+          if (input) input.focus();
+        }, 100);
+      }
+    }));
+
+    // M — участники
+    unsubs.push(registerHotkey('m', () => {
+      if (!selectedCard && !showInvite && !showSettings) {
+        setShowMembers(prev => !prev);
+      }
+    }));
+
+    // I — пригласить
+    unsubs.push(registerHotkey('i', () => {
+      if (!selectedCard && !showSettings) {
+        setShowInvite(prev => !prev);
+      }
+    }));
+
+    // G — настройки доски (для admin/owner)
+    unsubs.push(registerHotkey('g', () => {
+      if (!selectedCard && !showInvite && board) {
+        const role = board.members?.find(m => m.user?._id === user._id)?.role;
+        if (role === 'admin' || role === 'owner') {
+          setShowSettings(prev => !prev);
+        }
+      }
+    }));
+
+    // Escape — закрыть всё
+    unsubs.push(registerHotkey('Escape', () => {
+      if (selectedCard) { setSelectedCard(null); return; }
+      if (showInvite) { setShowInvite(false); return; }
+      if (showSettings) { setShowSettings(false); return; }
+      if (showMembers) { setShowMembers(false); return; }
+      if (addingColumn) { setAddingColumn(false); return; }
+      if (quickAddColumnIndex !== null) { setQuickAddColumnIndex(null); return; }
+    }));
+
+    return () => {
+      unsubs.forEach(fn => fn && fn());
+    };
+  }, [
+    registerHotkey, navigate, board, user._id,
+    selectedCard, showInvite, showSettings, showMembers,
+    addingColumn, quickAddColumnIndex
+  ]);
+
   // ===== Socket =====
   useEffect(() => {
     if (!socket || !id || !connected) return;
@@ -134,8 +180,7 @@ function Board() {
 
   // ===== Drag & Drop =====
   const handleDragEnd = async (result) => {
-    if (isViewer()) return; 
-
+    if (isViewer()) return;
     const { source, destination, type } = result;
     if (!destination) return;
     if (source.droppableId === destination.droppableId && source.index === destination.index) return;
@@ -147,7 +192,7 @@ function Board() {
       setBoard(prev => ({ ...prev, columns: newColumns }));
       try {
         await api.put(`/columns/reorder/${board._id}`, { columnOrder: newColumns.map(c => c._id) });
-      } catch (err) { fetchBoard(); }
+      } catch { fetchBoard(); }
       return;
     }
 
@@ -182,7 +227,7 @@ function Board() {
         destColumnId: destination.droppableId,
         newOrder: destination.index
       });
-    } catch (err) { fetchBoard(); }
+    } catch { fetchBoard(); }
   };
 
   // ===== Добавить столбец =====
@@ -199,31 +244,20 @@ function Board() {
   const getBoardBackground = () => {
     const bg = board?.background;
     if (!bg || !bg.value) return {};
-
     switch (bg.type) {
-      case 'color':
-        return { background: bg.value };
-      case 'gradient':
-        return { background: bg.value };
-      case 'image':
-        return {
-          backgroundImage: `url(${bg.value})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        };
-      default:
-        return {};
+      case 'color': return { background: bg.value };
+      case 'gradient': return { background: bg.value };
+      case 'image': return {
+        backgroundImage: `url(${bg.value})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      };
+      default: return {};
     }
   };
 
   if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner" />
-        <p>{t('board.loadingBoard')}</p>
-      </div>
-    );
+    return <div className="loading-screen"><div className="loading-spinner" /><p>{t('board.loadingBoard')}</p></div>;
   }
 
   if (!board) {
@@ -232,15 +266,11 @@ function Board() {
 
   return (
     <div className="board-page">
-      {!connected && (
-        <div className="reconnecting-bar">{t('common.reconnecting')}</div>
-      )}
+      {!connected && <div className="reconnecting-bar">{t('common.reconnecting')}</div>}
 
-      {/* Баннер наблюдателя */}
       {isViewer() && (
         <div className="viewer-banner">
-          <FiEyeOff size={14} />
-          <span>{t('board.viewerCantEdit')}</span>
+          <FiEyeOff size={14} /><span>{t('board.viewerCantEdit')}</span>
         </div>
       )}
 
@@ -264,17 +294,20 @@ function Board() {
             )}
           </div>
 
-          <button className="board-action-btn" onClick={() => setShowMembers(!showMembers)}>
+          <button className="board-action-btn" onClick={() => setShowMembers(!showMembers)}
+            title="M">
             <FiUsers /><span>{t('board.members')}</span>
           </button>
 
           {isAdminOrOwner() && (
-            <button className="board-action-btn" onClick={() => setShowSettings(true)}>
+            <button className="board-action-btn" onClick={() => setShowSettings(true)}
+              title="G">
               <FiSettings /><span>{t('nav.settings')}</span>
             </button>
           )}
 
-          <button className="board-action-btn accent" onClick={() => setShowInvite(true)}>
+          <button className="board-action-btn accent" onClick={() => setShowInvite(true)}
+            title="I">
             <FiUserPlus /><span>{t('board.invite')}</span>
           </button>
         </div>
@@ -300,8 +333,10 @@ function Board() {
                           onUpdate={fetchBoard}
                           members={board.members}
                           userRole={getUserRole()}
-                          // Пропс из фото 1
+                          allColumns={board.columns}
                           showDescPreview={showDescPreview}
+                          forceAddCard={quickAddColumnIndex === index}
+                          onCancelQuickAdd={() => setQuickAddColumnIndex(null)}
                         />
                       </div>
                     )}
@@ -309,7 +344,6 @@ function Board() {
                 ))}
                 {provided.placeholder}
 
-                {/* Добавить столбец — только для member+ */}
                 {canEdit() && (
                   <div className="add-column-wrapper">
                     {addingColumn ? (
@@ -345,7 +379,6 @@ function Board() {
         )}
       </div>
 
-      {/* Модалки */}
       {selectedCard && (
         <CardModal card={selectedCard} boardId={board._id} members={board.members}
           userRole={getUserRole()} onClose={() => setSelectedCard(null)} onUpdate={fetchBoard} />

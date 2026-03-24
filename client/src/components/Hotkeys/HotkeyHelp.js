@@ -24,26 +24,16 @@ function HotkeyHelp() {
       keys: [
         { combo: 'N', desc: t('hotkeys.newCard') },
         { combo: 'Shift + N', desc: t('hotkeys.newColumn') },
-        { combo: 'F', desc: t('hotkeys.search') },
         { combo: 'M', desc: t('hotkeys.toggleMembers') },
         { combo: 'I', desc: t('hotkeys.invite') },
-        { combo: 'S', desc: t('hotkeys.boardSettings') },
-      ]
-    },
-    {
-      title: t('hotkeys.cards'),
-      keys: [
-        { combo: 'E', desc: t('hotkeys.editCard') },
-        { combo: 'L', desc: t('hotkeys.addLabel') },
-        { combo: 'D', desc: t('hotkeys.setDueDate') },
-        { combo: 'C', desc: t('hotkeys.addComment') },
-        { combo: 'Del', desc: t('hotkeys.deleteCard') },
+        { combo: 'G', desc: t('hotkeys.boardSettings') },
       ]
     },
     {
       title: t('hotkeys.general'),
       keys: [
         { combo: '?', desc: t('hotkeys.showHelp') },
+        { combo: 'Ctrl + Click', desc: t('hotkeys.openNewTab') },
       ]
     }
   ];
@@ -53,7 +43,9 @@ function HotkeyHelp() {
       <div className="hotkey-modal" onClick={e => e.stopPropagation()}>
         <div className="hotkey-header">
           <h2>{t('hotkeys.title')}</h2>
-          <button className="hotkey-close" onClick={() => setShowHelp(false)}><FiX /></button>
+          <button className="hotkey-close" onClick={() => setShowHelp(false)}>
+            <FiX />
+          </button>
         </div>
 
         <div className="hotkey-grid">

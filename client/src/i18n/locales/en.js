@@ -120,6 +120,8 @@ const en = {
     boardNotFound: 'Board not found',
     editBoard: 'Edit board',
 
+      cardTitlePlaceholder: 'Enter task name...',
+
     defaultColumns: {
       todo: 'To Do',
       inProgress: 'In Progress',
@@ -313,23 +315,25 @@ const en = {
     title: 'Keyboard Shortcuts',
     navigation: 'Navigation',
     board: 'Board',
-    cards: 'Cards',
     general: 'General',
     goHome: 'Go to dashboard',
     goProfile: 'Go to profile',
     closeModal: 'Close modal',
     newCard: 'New card',
     newColumn: 'New column',
-    search: 'Search',
-    toggleMembers: 'Toggle members',
+    toggleMembers: 'Toggle members panel',
     invite: 'Invite',
     boardSettings: 'Board settings',
-    editCard: 'Edit card',
-    addLabel: 'Add label',
-    setDueDate: 'Set due date',
-    addComment: 'Add comment',
-    deleteCard: 'Delete',
-    showHelp: 'Show shortcuts',
+    showHelp: 'Show this help',
+    openNewTab: 'Open in new tab',
+  },
+
+  column: {
+    rename: 'Rename',
+    changeColor: 'Column color',
+    collapse: 'Collapse',
+    duplicate: 'Duplicate',
+    delete: 'Delete column',
   },
 
   markdown: { write: 'Write', preview: 'Preview' },

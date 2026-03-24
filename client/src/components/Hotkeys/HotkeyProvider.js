@@ -1,66 +1,105 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 
 const HotkeyContext = createContext(null);
 
 export function HotkeyProvider({ children }) {
   const [showHelp, setShowHelp] = useState(false);
-  const [handlers, setHandlers] = useState({});
+  const handlersRef = useRef({});
 
   const registerHotkey = useCallback((key, handler) => {
-    setHandlers(prev => ({ ...prev, [key]: handler }));
-    return () => setHandlers(prev => {
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
+    handlersRef.current[key] = handler;
+    return () => {
+      delete handlersRef.current[key];
+    };
+  }, []);
+
+  const unregisterAll = useCallback(() => {
+    handlersRef.current = {};
   }, []);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Игнорируем если фокус в инпуте
       const tag = e.target.tagName;
       const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target.isContentEditable;
 
-      // ? или Shift+/ — помощь (работает всегда)
-      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+      // ? — помощь (работает всегда)
+      if (e.key === '?') {
         e.preventDefault();
         setShowHelp(prev => !prev);
         return;
       }
 
-      // Escape — закрыть помощь
-      if (e.key === 'Escape' && showHelp) {
-        setShowHelp(false);
+      // Escape
+      if (e.key === 'Escape') {
+        if (showHelp) {
+          setShowHelp(false);
+          return;
+        }
+        // Передаём escape дальше
+        if (handlersRef.current['Escape']) {
+          handlersRef.current['Escape']();
+          return;
+        }
         return;
       }
 
+      // Не обрабатываем если в инпуте (кроме Escape)
       if (isInput) return;
 
-      const combo = [
-        e.ctrlKey || e.metaKey ? 'ctrl' : '',
-        e.shiftKey ? 'shift' : '',
-        e.altKey ? 'alt' : '',
-        e.key.toLowerCase()
-      ].filter(Boolean).join('+');
+      // Собираем комбо
+      const ctrl = e.ctrlKey || e.metaKey;
+      const shift = e.shiftKey;
+      const alt = e.altKey;
+      const key = e.key;
 
-      if (handlers[combo]) {
-        e.preventDefault();
-        handlers[combo]();
+      // Проверяем комбинации с модификаторами
+      if (ctrl || alt) {
+        const parts = [];
+        if (ctrl) parts.push('Ctrl');
+        if (shift) parts.push('Shift');
+        if (alt) parts.push('Alt');
+        parts.push(key.toUpperCase());
+        const combo = parts.join('+');
+
+        if (handlersRef.current[combo]) {
+          e.preventDefault();
+          handlersRef.current[combo]();
+          return;
+        }
       }
 
-      // Одиночные клавиши
-      if (handlers[e.key.toLowerCase()]) {
+      // Shift + буква
+      if (shift && key.length === 1) {
+        const combo = `Shift+${key.toUpperCase()}`;
+        if (handlersRef.current[combo]) {
+          e.preventDefault();
+          handlersRef.current[combo]();
+          return;
+        }
+      }
+
+      // Одиночная клавиша
+      const singleKey = key.length === 1 ? key.toLowerCase() : key;
+      if (handlersRef.current[singleKey]) {
         e.preventDefault();
-        handlers[e.key.toLowerCase()]();
+        handlersRef.current[singleKey]();
+        return;
+      }
+
+      // Delete / Backspace
+      if (handlersRef.current[key]) {
+        e.preventDefault();
+        handlersRef.current[key]();
+        return;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlers, showHelp]);
+  }, [showHelp]);
 
   return (
-    <HotkeyContext.Provider value={{ showHelp, setShowHelp, registerHotkey }}>
+    <HotkeyContext.Provider value={{ showHelp, setShowHelp, registerHotkey, unregisterAll }}>
       {children}
     </HotkeyContext.Provider>
   );
