@@ -30,7 +30,26 @@ function Column({
   const [contextMenu, setContextMenu] = useState(null);
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('collapsedColumns') || '[]');
+      return saved.includes(column._id);
+    } catch { return false; }
+  });
+
+  const toggleCollapse = (value) => {
+    setCollapsed(value);
+    try {
+      const saved = JSON.parse(localStorage.getItem('collapsedColumns') || '[]');
+      if (value) {
+        if (!saved.includes(column._id)) saved.push(column._id);
+      } else {
+        const idx = saved.indexOf(column._id);
+        if (idx !== -1) saved.splice(idx, 1);
+      }
+      localStorage.setItem('collapsedColumns', JSON.stringify(saved));
+    } catch {}
+  };
   const columnMenuRef = useRef(null);
   const addCardRef = useRef(null);
 
