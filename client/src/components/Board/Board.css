@@ -3132,12 +3132,16 @@
   pointer-events: none;
 }
 
-.cm-quick-label:hover:not(.added) {
+.cm-quick-label:hover {
   transform: translateY(-1px) scale(1.04);
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
-.cm-quick-label.added { opacity: 0.35; cursor: default; filter: grayscale(0.3); }
+.cm-quick-label.added { 
+  opacity: 0.8; 
+  cursor: pointer; 
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
+}
 
 /* Label Live Preview */
 .cm-label-preview-row {

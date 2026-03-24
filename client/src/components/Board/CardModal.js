@@ -76,11 +76,15 @@ function CardModal({ card, boardId, members, userRole, savedLabels = [], onClose
   };
 
   // ===== Теги =====
-  const addQuickLabel = async (label) => {
+  const toggleQuickLabel = async (label) => {
     if (!canEdit) return;
-    const alreadyAdded = labels.some(l => l.text === label.text && l.color === label.color);
-    if (alreadyAdded) return;
-    const nl = [...labels, { text: label.text, color: label.color }];
+    const isAdded = labels.some(l => l.text === label.text && l.color === label.color);
+    let nl;
+    if (isAdded) {
+      nl = labels.filter(l => !(l.text === label.text && l.color === label.color));
+    } else {
+      nl = [...labels, { text: label.text, color: label.color }];
+    }
     setLabels(nl);
     try { await api.put(`/cards/${card._id}`, { labels: nl }); }
     catch (err) { console.error(err); }
@@ -381,7 +385,7 @@ function CardModal({ card, boardId, members, userRole, savedLabels = [], onClose
                         return (
                           <button key={i} className={`cm-quick-label ${added ? 'added' : ''}`}
                             style={{ background: sl.color }}
-                            onClick={() => addQuickLabel(sl)} disabled={added}>
+                            onClick={() => toggleQuickLabel(sl)}>
                             {added && <FiCheck size={10} />}
                             {sl.text}
                           </button>

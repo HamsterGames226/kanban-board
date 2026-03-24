@@ -1,32 +1,39 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
-const { v2: cloudinary } = require('cloudinary');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const path = require('path');
+const fs = require('fs');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-// Настройка Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// Убедимся, что папка uploads/avatars существует
+const avatarsDir = path.join(__dirname, '../uploads/avatars');
+if (!fs.existsSync(avatarsDir)) {
+  fs.mkdirSync(avatarsDir, { recursive: true });
+}
 
-// Настройка хранилища Cloudinary для Multer
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'taskboard-avatars',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-    transformation: [{ width: 256, height: 256, crop: 'fill', gravity: 'face' }],
+// Настройка локального хранилища для Multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, avatarsDir);
   },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+  }
 });
 
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Только изображения разрешены'));
+    }
+  }
 });
 
 // Get profile
@@ -144,7 +151,7 @@ router.put('/password', auth, async (req, res) => {
   }
 });
 
-// Upload avatar to Cloudinary
+// Upload avatar locally
 router.post('/avatar', auth, upload.single('avatar'), async (req, res) => {
   try {
     if (!req.file) {
@@ -153,8 +160,16 @@ router.post('/avatar', auth, upload.single('avatar'), async (req, res) => {
 
     const user = await User.findById(req.user._id);
     
-    // В Cloudinary путь к файлу находится в req.file.path
-    user.customAvatar = req.file.path; 
+    // Удаляем старую локальную аватарку, если она есть
+    if (user.customAvatar && user.customAvatar.startsWith('/uploads/avatars/')) {
+      const oldPath = path.join(__dirname, '..', user.customAvatar);
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
+      }
+    }
+
+    // Сохраняем относительный путь
+    user.customAvatar = `/uploads/avatars/${req.file.filename}`; 
     await user.save();
 
     const updatedUser = await User.findById(user._id).select('-password');
@@ -169,8 +184,15 @@ router.post('/avatar', auth, upload.single('avatar'), async (req, res) => {
 router.delete('/avatar', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    // Примечание: для полного удаления из Cloudinary нужно использовать cloudinary.uploader.destroy
-    // Но для начала просто очистим поле в базе
+    
+    // Удаляем файл с диска
+    if (user.customAvatar && user.customAvatar.startsWith('/uploads/avatars/')) {
+      const oldPath = path.join(__dirname, '..', user.customAvatar);
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
+      }
+    }
+    
     user.customAvatar = '';
     await user.save();
 
