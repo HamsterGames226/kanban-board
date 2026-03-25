@@ -254,3 +254,43 @@
 .cal-card-done {
   color: #23a559;
 }
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .calendar-view-container {
+    margin: 8px;
+    height: calc(100vh - 120px);
+  }
+
+  .calendar-header {
+    padding: 12px 16px;
+  }
+
+  .calendar-current-month {
+    font-size: 16px;
+  }
+
+  .calendar-grid {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .calendar-day-names,
+  .calendar-cells {
+    min-width: 700px; /* Ensure 7 columns are usable */
+  }
+
+  .calendar-cell {
+    min-height: 100px;
+  }
+
+  .calendar-day-num {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .cal-card-title {
+    font-size: 11px;
+  }
+}
+

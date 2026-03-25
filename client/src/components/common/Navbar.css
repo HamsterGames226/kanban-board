@@ -299,3 +299,48 @@ a[target="_blank"]::after {
   color: var(--text-muted);
   font-family: inherit;
 }
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 12px;
+  }
+  
+  .navbar-brand span, 
+  .nav-link span {
+    display: none;
+  }
+  
+  .navbar-logo {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .nav-link {
+    padding: 8px;
+    font-size: 18px;
+  }
+  
+  .lang-switcher {
+    margin-right: 8px;
+  }
+  
+  .lang-btn {
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+  
+  .user-name {
+    display: none;
+  }
+  
+  .dropdown-menu {
+    position: fixed;
+    top: 48px;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    border-radius: 0 0 16px 16px;
+    border-top: 1px solid var(--border-subtle);
+  }
+}

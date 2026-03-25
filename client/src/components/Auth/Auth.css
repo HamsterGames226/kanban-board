@@ -181,3 +181,26 @@
   25% { transform: translateX(-5px); }
   75% { transform: translateX(5px); }
 }
+
+/* Media Queries */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 24px;
+    margin: 16px;
+    border-radius: var(--radius-lg);
+  }
+  
+  .auth-logo-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .auth-logo-text {
+    font-size: 24px;
+  }
+  
+  .auth-card h1 {
+    font-size: 20px;
+  }
+}

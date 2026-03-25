@@ -112,3 +112,37 @@
   pointer-events: none;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .graph-legend {
+    top: 8px;
+    left: 8px;
+    padding: 8px;
+    min-width: 120px;
+    gap: 8px;
+  }
+
+  .legend-item {
+    font-size: 11px;
+    gap: 8px;
+  }
+
+  .graph-mode-toggle {
+    padding-top: 4px;
+    gap: 4px;
+  }
+
+  .graph-mode-btn {
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .graph-controls-hint {
+    bottom: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+}
+

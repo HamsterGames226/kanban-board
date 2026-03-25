@@ -128,3 +128,45 @@
   font-size: 12px;
   margin-top: 16px;
 }
+
+/* Media Queries */
+@media (max-width: 480px) {
+  .tutorial-modal {
+    padding: 24px 16px;
+    margin: 16px;
+    border-radius: var(--radius-lg);
+  }
+
+  .tutorial-icon {
+    width: 80px; height: 80px;
+    margin-bottom: 16px;
+  }
+
+  .tutorial-icon svg {
+    width: 36px; height: 36px;
+  }
+
+  .tutorial-content h2 {
+    font-size: 20px;
+  }
+
+  .tutorial-content p {
+    font-size: 14px;
+  }
+
+  .tutorial-progress {
+    margin-bottom: 24px;
+    gap: 6px;
+  }
+
+  .tutorial-nav {
+    margin-top: 24px;
+    flex-direction: column-reverse;
+  }
+
+  .tutorial-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+  }
+}

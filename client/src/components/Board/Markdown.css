@@ -158,3 +158,16 @@
 .md-tab:hover {
   color: var(--text-normal);
 }
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .md-toolbar {
+    gap: 1px;
+    padding: 2px;
+  }
+  
+  .md-toolbar-btn {
+    padding: 6px;
+    font-size: 11px;
+  }
+}

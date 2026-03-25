@@ -1950,6 +1950,7 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  line-clamp: 2;
   overflow: hidden;
   opacity: 0.8;
 }
@@ -3301,7 +3302,62 @@
 
 /* ===== MOBILE ===== */
 @media (max-width: 768px) {
+  .board-header {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  
+  .board-desc,
+  .board-action-btn span {
+    display: none;
+  }
+  
+  .board-action-btn {
+    padding: 8px;
+    font-size: 18px;
+  }
+  
+  .board-header-right {
+    gap: 8px;
+  }
+  
+  .view-switcher-premium {
+    margin-right: 4px;
+  }
+  
+  .view-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .board-columns {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .column-wrapper, 
+  .add-column-wrapper {
+    width: 85vw;
+  }
+  
+  .column {
+    max-height: calc(100vh - 160px);
+  }
+  
+  .members-bar {
+    position: fixed;
+    top: 48px;
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85vw;
+    z-index: 1000;
+    border-left: 1px solid var(--border-subtle);
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
+  }
+  
   .card-modal-new {
+
     max-width: 100%;
     border-radius: 20px 20px 0 0;
     max-height: 92vh;
@@ -3313,8 +3369,10 @@
   .cm-sidebar {
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     background: transparent;
+    padding: 20px;
   }
 }
+
 
 /* ===== PREMIUM LABELS SYSTEM ===== */
 .cm-label-picker-item {

@@ -443,3 +443,48 @@ img.avatar-large {
 .toggle-switch input:checked + .toggle-slider::before {
   transform: translateX(20px);
 }
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .profile-page {
+    padding: 16px;
+  }
+  
+  .profile-section {
+    padding: 16px;
+  }
+  
+  .avatar-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+  }
+  
+  .avatar-actions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .language-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .language-option {
+    min-width: 0;
+    width: 100%;
+  }
+  
+  .account-field {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .account-field button {
+    width: 100%;
+    justify-content: center;
+  }
+}
